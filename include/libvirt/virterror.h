@@ -143,6 +143,7 @@ typedef enum {
     VIR_FROM_CH = 72,           /* Error from Cloud-Hypervisor driver (Since: 7.5.0) */
 
 # ifdef VIR_ENUM_SENTINELS
+    VIR_FROM_MACOSVF = 73,      /* Error from macOS Virtualization.Framework driver (Since: 10.10.0) */
     VIR_ERR_DOMAIN_LAST /* (Since: 0.9.13) */
 # endif
 } virErrorDomain;

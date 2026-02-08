@@ -1,0 +1,15 @@
+<domain type='macosvf'>
+  <name>linux-with-initrd</name>
+  <uuid>f58c58a2-c7e3-11e3-bb60-50e5492bd3dc</uuid>
+  <memory unit='KiB'>524288</memory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+    <initrd>/var/lib/libvirt/boot/initrd.img</initrd>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+</domain>

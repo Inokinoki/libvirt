@@ -1,0 +1,22 @@
+<domain type='macosvf'>
+  <name>test-cpu-feature-pm</name>
+  <uuid>81d4e56c-1234-5678-9abc-def000000052</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <currentMemory unit='KiB'>1048576</currentMemory>
+  <vcpu placement='static'>2</vcpu>
+  <cpu mode='host-passthrough' check='none'>
+    <feature policy='require' name='pmu'/>
+  </cpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/boot/vmlinuz</kernel>
+    <initrd>/boot/initrd.img</initrd>
+    <cmdline>root=/dev/vda1 console=ttyAMA0</cmdline>
+  </os>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/test.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+  </devices>
+</domain>

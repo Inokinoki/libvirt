@@ -1,0 +1,77 @@
+<domain type='macosvf'>
+  <name>test-advanced-virtio</name>
+  <uuid>aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <currentMemory unit='KiB'>1048576</currentMemory>
+  <vcpu placement='static'>2</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/path/to/kernel</kernel>
+    <cmdline>console=ttyAMA0</cmdline>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <cpu mode='host-passthrough'/>
+  <clock offset='utc'>
+    <timer name='platform' tickpolicy='delay'/>
+    <timer name='rtc' tickpolicy='catchup'/>
+    <timer name='armvtimer'/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <devices>
+    <emulator>/usr/bin/qemu-system-aarch64</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2' cache='writeback' io='threads' discard='unmap' detect_zeroes='unmap'/>
+      <source file='/path/to/disk1.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+      <boot order='1'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='raw' cache='writethrough'/>
+      <source file='/path/to/disk2.raw'/>
+      <target dev='vdb' bus='virtio'/>
+      <readonly/>
+      <shareable/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='/path/to/install.iso'/>
+      <target dev='sda' bus='scsi'/>
+      <readonly/>
+      <boot order='2'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='0'/>
+    </disk>
+    <controller type='scsi' index='0'/>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='isa' index='0'/>
+    <interface type='user'>
+      <mac address='52:54:00:aa:bb:cc'/>
+      <model type='virtio'/>
+      <driver name='vhost' queues='2'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x0'/>
+    </interface>
+    <interface type='bridge'>
+      <mac address='52:54:00:dd:ee:ff'/>
+      <source bridge='virbr0'/>
+      <model type='virtio'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
+    </interface>
+    <serial type='pty'>
+      <target port='0'/>
+      <alias name='serial0'/>
+    </serial>
+    <serial type='file'>
+      <source path='/var/log/libvirt/serial1.log'/>
+      <target port='1'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+      <alias name='console0'/>
+    </console>
+  </devices>
+</domain>

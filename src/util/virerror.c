@@ -145,6 +145,8 @@ VIR_ENUM_IMPL(virErrorDomain,
               "TPM", /* 70 */
               "BPF",
               "Cloud-Hypervisor Driver",
+
+              "macOS VF Driver", /* 73 */
 );
 
 

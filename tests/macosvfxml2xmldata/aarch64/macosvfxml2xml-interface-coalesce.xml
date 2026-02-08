@@ -1,0 +1,33 @@
+<domain type='macosvf'>
+  <name>interface-coalesce</name>
+  <uuid>88889999-aaaa-bbbb-cccc-ddddeeeeffff</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+    <cmdline>root=/dev/vda1 console=ttyAMA0</cmdline>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/disk.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <interface type='network'>
+      <mac address='52:54:00:12:34:58'/>
+      <source network='default'/>
+      <target dev='vnet2'/>
+      <model type='virtio'/>
+      <coalesce>
+        <rx max_frames='128'/>
+      </coalesce>
+    </interface>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

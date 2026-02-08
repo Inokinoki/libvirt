@@ -1,0 +1,18 @@
+<domain type='macosvf'>
+  <name>vm-invalid-cpu</name>
+  <uuid>12345678-1234-1234-1234-123456789abc</uuid>
+  <memory unit='KiB'>524288</memory>
+  <currentMemory unit='KiB'>524288</currentMemory>
+  <vcpu placement='static'>32</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+</domain>

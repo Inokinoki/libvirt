@@ -1,0 +1,20 @@
+<domain type='macosvf'>
+  <name>invalid-net-model</name>
+  <uuid>778899aa-bbcc-ddee-ff00-112233445566</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <interface type='bridge'>
+      <mac address='52:54:00:12:34:56'/>
+      <source bridge='virbr0'/>
+      <model type='e1000'/>
+    </interface>
+  </devices>
+</domain>

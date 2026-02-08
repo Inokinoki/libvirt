@@ -1,0 +1,79 @@
+<domain type='macosvf'>
+  <name>test-advanced-config</name>
+  <uuid>aaaa1111-bb22-cc33-dd44-ee55ff667788</uuid>
+  <metadata>
+    <libosinfo:libosinfo xmlns:libosinfo="http://libosinfo.org/xmlns/libvirt/domain/1.0">
+      <libosinfo:os id="http://libosinfo.org/debian12"/>
+    </libosinfo:libosinfo>
+  </metadata>
+  <memory unit='KiB'>4194304</memory>
+  <currentMemory unit='KiB'>2097152</currentMemory>
+  <vcpu placement='static'>4</vcpu>
+  <vcpus>
+    <vcpu id='0' enabled='yes'/>
+    <vcpu id='1' enabled='yes'/>
+    <vcpu id='2' enabled='yes'/>
+    <vcpu id='3' enabled='yes'/>
+  </vcpus>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/path/to/vmlinuz</kernel>
+    <initrd>/path/to/initrd.img</initrd>
+    <cmdline>console=ttyAMA0 root=/dev/vda1 rw quiet</cmdline>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <cpu mode='host-model' check='none'>
+    <topology sockets='1' cores='4' threads='1'/>
+  </cpu>
+  <clock offset='utc'>
+    <timer name='platform' tickpolicy='delay'/>
+    <timer name='rtc' tickpolicy='catchup'/>
+    <timer name='armvtimer'/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <devices>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/path/to/root.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+      <boot order='1'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='raw'/>
+      <source file='/path/to/data.img'/>
+      <target dev='vdb' bus='virtio'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='/path/to/install.iso'/>
+      <target dev='sda' bus='scsi'/>
+      <readonly/>
+      <boot order='2'/>
+    </disk>
+    <interface type='bridge'>
+      <mac address='52:54:00:12:34:ab'/>
+      <source bridge='br0'/>
+      <model type='virtio'/>
+      <driver name='vhost'/>
+    </interface>
+    <interface type='user'>
+      <mac address='52:54:00:cd:ef:01'/>
+      <model type='virtio'/>
+    </interface>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <serial type='file'>
+      <source path='/var/log/libvirt/domain-serial.log'/>
+      <target port='1'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

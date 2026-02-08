@@ -1,0 +1,28 @@
+<domain type='macosvf'>
+  <name>invalid-memory-hugepages-nodemask</name>
+  <uuid>77778888-9999-aaaa-bbbb-ccccddddeeee</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <memoryBacking>
+    <hugepages>
+      <page size='2048' unit='KiB' nodemask='0-1'/>
+    </hugepages>
+  </memoryBacking>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/disk.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

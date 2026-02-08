@@ -1,0 +1,23 @@
+<domain type='macosvf'>
+  <name>vm-invalid-numa</name>
+  <uuid>12345678-1234-1234-1234-123456789abc</uuid>
+  <memory unit='KiB'>524288</memory>
+  <currentMemory unit='KiB'>524288</currentMemory>
+  <vcpu placement='static'>2</vcpu>
+  <cpu mode='host-model'/>
+  <numa>
+    <cell id='0' cpus='0' memory='524288' unit='KiB'/>
+    <cell id='1' cpus='1' memory='524288' unit='KiB'/>
+  </numa>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+</domain>

@@ -1,0 +1,64 @@
+<domain type='macosvf'>
+  <name>test-serial-types</name>
+  <uuid>33333333-3333-3333-3333-333333333333</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <currentMemory unit='KiB'>1048576</currentMemory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/path/to/kernel</kernel>
+    <cmdline>console=ttyAMA0</cmdline>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <cpu mode='host-passthrough'/>
+  <clock offset='utc'>
+    <timer name='platform' tickpolicy='delay'/>
+    <timer name='rtc' tickpolicy='catchup'/>
+    <timer name='armvtimer'/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <emulator>/usr/bin/qemu-system-aarch64</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='raw'/>
+      <source file='/path/to/disk.raw'/>
+      <target dev='vda' bus='virtio'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
+    </disk>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='isa' index='0'/>
+    <interface type='user'>
+      <mac address='52:54:00:33:33:33'/>
+      <model type='virtio'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x0'/>
+    </interface>
+    <serial type='pty'>
+      <target port='0'/>
+      <alias name='serial0'/>
+    </serial>
+    <serial type='file'>
+      <source path='/var/log/libvirt/serial0.log'/>
+      <target port='1'/>
+    </serial>
+    <serial type='null'>
+      <target port='2'/>
+    </serial>
+    <serial type='unix'>
+      <source mode='bind' path='/var/lib/libvirt/serial.sock'/>
+      <target port='3'/>
+    </serial>
+    <serial type='tcp'>
+      <source mode='bind' host='127.0.0.1' service='9999' protocol='raw'/>
+      <protocol type='raw'/>
+      <target port='4'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+      <alias name='console0'/>
+    </console>
+  </devices>
+</domain>

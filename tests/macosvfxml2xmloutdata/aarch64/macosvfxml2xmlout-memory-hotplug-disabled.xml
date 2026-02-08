@@ -1,0 +1,25 @@
+<domain type='macosvf'>
+  <name>memory-hotplug-disabled</name>
+  <uuid>44445555-6666-7777-8888-9999aaaabbbb</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <maxMemory unit='KiB'>2097152</maxMemory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+    <cmdline>root=/dev/vda1 console=ttyAMA0</cmdline>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/disk.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

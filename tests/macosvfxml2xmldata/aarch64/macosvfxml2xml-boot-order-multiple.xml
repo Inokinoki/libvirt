@@ -1,0 +1,30 @@
+<domain type='macosvf'>
+  <name>test-boot-order-multiple</name>
+  <uuid>81d4e56c-1234-5678-9abc-def000000067</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <currentMemory unit='KiB'>1048576</currentMemory>
+  <vcpu placement='static'>2</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <boot dev='hd'/>
+    <boot dev='cdrom'/>
+    <boot dev='network'/>
+  </os>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/test.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+      <boot order='1'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <source file='/var/lib/libvirt/images/cdrom.iso'/>
+      <target dev='sda' bus='scsi'/>
+      <readonly/>
+      <boot order='2'/>
+    </disk>
+    <interface type='network'>
+      <source network='default'/>
+      <boot order='3'/>
+    </interface>
+  </devices>
+</domain>

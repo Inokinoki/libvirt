@@ -1,0 +1,32 @@
+<domain type='macosvf'>
+  <name>macosvf-invalid-cputune-quota</name>
+  <uuid>81b08e76-c6f7-475a-9428-4a6dc2dba311</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <currentMemory unit='KiB'>1048576</currentMemory>
+  <vcpu placement='static'>1</vcpu>
+  <cputune>
+    <quota>50000</quota>
+  </cputune>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/boot/vmlinuz</kernel>
+    <initrd>/boot/initrd.img</initrd>
+    <cmdline>console=ttyS0 root=/dev/vda1</cmdline>
+  </os>
+  <cpu mode='host-model'/>
+  <clock offset='utc'/>
+  <devices>
+    <emulator>/usr/bin/macOSVF</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='raw'/>
+      <source file='/var/lib/libvirt/images/macOSVF.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

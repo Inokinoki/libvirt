@@ -367,6 +367,24 @@ if conf.has('WITH_BHYVE')
   ]
 endif
 
+if conf.has('WITH_MACOSVF')
+  tests += [
+    { 'name': 'macosvfxml2xmltest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosfvcapabilitiestest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfsuspendtest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfedgetest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvflifecycletest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfstatstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfdomainopstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfmemorystatstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfschedulertest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfblockiotunetest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfmemoryparamstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfnumaparamstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfinterfaceparamstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+  ]
+endif
+
 if conf.has('WITH_CH')
   tests += [
     { 'name': 'chxml2xmltest', 'link_with': [ ch_driver_impl ] },
@@ -610,6 +628,7 @@ foreach data : tests
     ],
     link_args: [
       libvirt_no_indirect,
+      data.get('link_args', []),
     ],
     link_with: [
       libvirt_lib,

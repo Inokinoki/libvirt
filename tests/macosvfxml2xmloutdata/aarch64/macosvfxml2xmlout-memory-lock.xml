@@ -1,0 +1,27 @@
+<domain type='macosvf'>
+  <name>memory-lock</name>
+  <uuid>aaaa7777-bbbb-8888-cccc-dddd9991eeee</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <currentMemory unit='KiB'>524288</currentMemory>
+  <memoryBacking>
+    <locked/>
+  </memoryBacking>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/disk.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

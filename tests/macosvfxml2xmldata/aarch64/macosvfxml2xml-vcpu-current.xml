@@ -1,0 +1,23 @@
+<domain type='macosvf'>
+  <name>vcpu-current-vm</name>
+  <uuid>33445566-7788-99aa-bbccddeeff001122</uuid>
+  <memory unit='KiB'>2097152</memory>
+  <vcpu placement='static' current='2'>4</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/disk.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

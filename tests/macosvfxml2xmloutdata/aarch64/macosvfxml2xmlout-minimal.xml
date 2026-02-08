@@ -1,0 +1,21 @@
+<domain type='macosvf'>
+  <name>minimal</name>
+  <uuid>c7a5fdbd-cdaf-9455-926a-d65c16db1809</uuid>
+  <memory unit='KiB'>524288</memory>
+  <currentMemory unit='KiB'>524288</currentMemory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <controller type='pci' index='0' model='pci-root'/>
+  </devices>
+</domain>

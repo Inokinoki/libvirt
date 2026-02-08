@@ -1,0 +1,59 @@
+<domain type='macosvf'>
+  <name>test-statistics</name>
+  <uuid>87654321-4321-4321-4321-cba987654321</uuid>
+  <memory unit='KiB'>2097152</memory>
+  <currentMemory unit='KiB'>2097152</currentMemory>
+  <vcpu placement='static' current='2'>4</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/path/to/kernel-stats</kernel>
+    <initrd>/path/to/initrd-stats</initrd>
+    <cmdline>console=ttyAMA0 root=/dev/vda2</cmdline>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <cpu mode='host-model' check='none'>
+    <topology sockets='1' cores='2' threads='2'/>
+  </cpu>
+  <clock offset='utc'>
+    <timer name='platform' tickpolicy='delay'/>
+    <timer name='rtc' tickpolicy='catchup'/>
+    <timer name='armvtimer'/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>preserve</on_crash>
+  <devices>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2' io='threads' discard='unmap'/>
+      <source file='/path/to/stats-disk.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
+    </disk>
+    <interface type='bridge'>
+      <mac address='52:54:00:ab:cd:ef'/>
+      <source bridge='bridge0'/>
+      <model type='virtio'/>
+      <driver name='vhost' queues='4'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x0'/>
+    </interface>
+    <interface type='user'>
+      <mac address='52:54:00:fe:dc:ba'/>
+      <model type='virtio'/>
+    </interface>
+    <serial type='pty'>
+      <target port='0'/>
+      <alias name='serial0'/>
+    </serial>
+    <serial type='file'>
+      <source path='/var/log/libvirt/serial.log'/>
+      <target port='1'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+      <alias name='console0'/>
+    </console>
+  </devices>
+</domain>

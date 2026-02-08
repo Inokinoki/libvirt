@@ -1,0 +1,20 @@
+<domain type='macosvf'>
+  <name>linux-cmdline</name>
+  <uuid>00b72482-c7e4-11e3-a47e-50e5492bd3dc</uuid>
+  <memory unit='KiB'>524288</memory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='x86_64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+    <cmdline>ro root=/dev/vda1 console=ttyS0,115200</cmdline>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+  </devices>
+</domain>

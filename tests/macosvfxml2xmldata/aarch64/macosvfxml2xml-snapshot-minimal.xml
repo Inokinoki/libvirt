@@ -1,0 +1,46 @@
+<domainsnapshot>
+  <name>minimal-snapshot</name>
+  <description>Minimal domain snapshot for testing</description>
+  <state>shutoff</state>
+  <creationTime>1728409200</creationTime>
+  <domain type='macosvf'>
+    <name>test-minimal</name>
+    <uuid>11111111-2222-3333-4444-555555555555</uuid>
+    <memory unit='KiB'>524288</memory>
+    <vcpu placement='static'>1</vcpu>
+    <os>
+      <type arch='aarch64' machine='macosvf'>hvm</type>
+      <kernel>/path/to/kernel</kernel>
+      <initrd>/path/to/initrd</initrd>
+      <cmdline>console=ttyAMA0 root=/dev/vda1</cmdline>
+    </os>
+    <features>
+      <acpi/>
+    </features>
+    <cpu mode='host-passthrough'/>
+    <clock offset='utc'/>
+    <on_poweroff>destroy</on_poweroff>
+    <on_reboot>restart</on_reboot>
+    <on_crash>destroy</on_crash>
+    <devices>
+      <emulator>/usr/bin/qemu-system-aarch64</emulator>
+      <disk type='file' device='disk'>
+        <source file='/path/to/disk.qcow2'/>
+        <target dev='vda' bus='virtio'/>
+      </disk>
+      <controller type='pci' index='0' model='pci-root'/>
+      <controller type='isa' index='0'/>
+      <interface type='user'>
+        <mac address='52:54:00:11:11:11'/>
+        <model type='virtio'/>
+      </interface>
+      <serial type='pty'>
+        <target port='0'/>
+      </serial>
+      <console type='pty'>
+        <target type='serial' port='0'/>
+      </console>
+    </devices>
+  </domain>
+  <active>0</active>
+</domainsnapshot>
