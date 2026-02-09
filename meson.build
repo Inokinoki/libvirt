@@ -1789,6 +1789,46 @@ elif get_option('driver_vz').enabled()
   error('Parallels Virtualization SDK is needed to build the Virtuozzo driver.')
 endif
 
+# macOS Virtualization.Framework driver
+if not get_option('driver_macosvf').disabled()
+  use_macosvf = true
+
+  # Must be on macOS
+  if host_machine.system() != 'darwin'
+    use_macosvf = false
+    if get_option('driver_macosvf').enabled()
+      error('macOS Virtualization.Framework driver requires macOS')
+    endif
+  endif
+
+  # Check for virtualization.framework availability
+  if use_macosvf
+    # Require ARM64 (Apple Silicon) - x86_64 Intel not supported
+    if host_machine.cpu_family() != 'aarch64'
+      use_macosvf = false
+      if get_option('driver_macosvf').enabled()
+        error('macOS Virtualization.Framework driver only supports Apple Silicon (ARM64)')
+      endif
+    endif
+
+    # Test framework header availability
+    # We assume virtualization.framework is available on macOS 11+ ARM64
+    # The actual availability will be verified at compile time
+  endif
+
+  # Check libvirtd availability
+  if use_macosvf and not conf.has('WITH_LIBVIRTD')
+    use_macosvf = false
+    if get_option('driver_macosvf').enabled()
+      error('libvirtd is required to build macOS VF driver')
+    endif
+  endif
+
+  if use_macosvf
+    conf.set('WITH_MACOSVF', 1)
+  endif
+endif
+
 if not get_option('secdriver_apparmor').disabled() and apparmor_dep.found()
   conf.set('WITH_SECDRIVER_APPARMOR', 1)
 elif get_option('secdriver_apparmor').enabled()
@@ -2260,6 +2300,7 @@ driver_summary = {
   'VBox': conf.has('WITH_VBOX'),
   'VMware': conf.has('WITH_VMWARE'),
   'vz': conf.has('WITH_VZ'),
+  'MacOSVF': conf.has('WITH_MACOSVF'),
 }
 summary(driver_summary, section: 'Drivers', bool_yn: true)
 
