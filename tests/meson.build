@@ -370,7 +370,7 @@ endif
 if conf.has('WITH_MACOSVF')
   tests += [
     { 'name': 'macosvfxml2xmltest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
-    { 'name': 'macosfvcapabilitiestest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfcapabilitiestest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
     { 'name': 'macosvfsuspendtest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
     { 'name': 'macosvfedgetest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
     { 'name': 'macosvflifecycletest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
