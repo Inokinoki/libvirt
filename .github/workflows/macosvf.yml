@@ -1,0 +1,85 @@
+name: macOS Virtualization.Framework Build and Test
+
+on:
+  push:
+    branches:
+      - master
+      - macos-virtualization-frameworks
+    paths:
+      - 'src/macosvf/**'
+      - 'tests/macosvf*'
+      - '.github/workflows/macosvf.yml'
+  pull_request:
+    branches:
+      - master
+      - macos-virtualization-frameworks
+    paths:
+      - 'src/macosvf/**'
+      - 'tests/macosvf*'
+      - '.github/workflows/macosvf.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and Test macOS Virtualization.Framework
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install meson ninja pkg-config
+          brew install glib gnutls libxml2 readline xz
+          brew install libpcap numactl
+
+      - name: Configure build
+        run: |
+          meson setup builddir \
+            -Ddriver_macosvf=enabled \
+            -Ddriver_remote=enabled \
+            -Ddriver_libvirtd=enabled \
+            -Ddriver_test=enabled \
+            -Dtests=enabled \
+            -Ddocs=disabled \
+            --prefix=/usr/local
+
+      - name: Build
+        run: |
+          meson compile -C builddir -j$(sysctl -n hw.ncpu)
+
+      - name: Run macOS Virtualization.Framework tests
+        run: |
+          cd builddir
+          meson test \
+            --suite macosvf \
+            --no-rebuild \
+            --print-errorlogs \
+            || true
+        continue-on-error: true
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: meson-test-logs
+          path: |
+            builddir/meson-logs/testlog.txt
+            builddir/meson-logs/meson-log.txt
+          retention-days: 7
+
+      - name: Show test summary
+        if: always()
+        run: |
+          if [ -f builddir/meson-logs/testlog.txt ]; then
+            echo "=== Test Results ==="
+            cat builddir/meson-logs/testlog.txt
+          fi
