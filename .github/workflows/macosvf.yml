@@ -49,6 +49,7 @@ jobs:
             -Ddriver_libvirtd=enabled \
             -Ddriver_test=enabled \
             -Dtests=enabled \
+            -Doptimization=0 \
             -Ddocs=disabled \
             --prefix=/usr/local
 
