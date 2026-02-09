@@ -51,6 +51,9 @@ int macosvfVMSetupStorage(virDomainDef *def, macosvfVMObject *vm);
 int macosvfVMSetupNetwork(virDomainDef *def, macosvfVMObject *vm);
 int macosvfVMSetupSerial(virDomainDef *def, macosvfVMObject *vm);
 int macosvfVMSetupConsole(virDomainDef *def, macosvfVMObject *vm);
+int macosvfVMSetupGraphics(virDomainDef *def, macosvfVMObject *vm);
+int macosvfVMSetupInput(virDomainDef *def, macosvfVMObject *vm);
+int macosvfVMSetupAudio(virDomainDef *def, macosvfVMObject *vm);
 
 /* Statistics */
 int macosvfVMGetCPUStats(macosvfVMObject *vm, unsigned long long *cpuTime);

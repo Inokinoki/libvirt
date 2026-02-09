@@ -1,0 +1,21 @@
+<domain type='macosvf'>
+  <name>invalid-filesystem-nbd</name>
+  <memory unit='KiB'>524288</memory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <filesystem type='mount' accessmode='passthrough' fsdriver='nbd'>
+      <source dir='/path/on/host'/>
+      <target dir='/mount/tag'/>
+    </filesystem>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

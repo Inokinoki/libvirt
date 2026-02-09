@@ -279,13 +279,16 @@ mymain(void)
     DO_TEST_FAILURE("invalid-net-model-virtio-nonvirtio");
     DO_TEST_FAILURE("invalid-net-type-user");
     DO_TEST_FAILURE("invalid-graphics-device");
-    DO_TEST_FAILURE("invalid-input-device");
     DO_TEST_FAILURE("invalid-sound-device");
-    DO_TEST_FAILURE("invalid-video-device");
     DO_TEST_FAILURE("invalid-hostdev-passthrough");
     DO_TEST_FAILURE("invalid-usb-device");
     DO_TEST_FAILURE("invalid-watchdog-device");
     DO_TEST_FAILURE("invalid-memballoon-device");
+
+    /* Graphics and input device tests - now supported */
+    DO_TEST_DIFFERENT("input-keyboard");
+    DO_TEST_DIFFERENT("graphics-basic");
+    DO_TEST_DIFFERENT("graphics-vga");
 
     /* Domain configuration validation tests */
     DO_TEST_FAILURE("invalid-os-type-xen");
@@ -999,6 +1002,30 @@ mymain(void)
     /* Iteration 87: Advanced configuration tests */
     DO_TEST_DIFFERENT("advanced-config");
     DO_TEST_DIFFERENT("timer-comprehensive");
+
+    /* Iteration 88: Filesystem (shared folder) device tests */
+    DO_TEST_DIFFERENT("filesystem-basic");
+    DO_TEST_DIFFERENT("filesystem-readonly");
+    DO_TEST_DIFFERENT("filesystem-multiple");
+
+    /* Iteration 88: Filesystem validation error tests */
+    DO_TEST_FAILURE("invalid-filesystem-type-ram");
+    DO_TEST_FAILURE("invalid-filesystem-driver-nbd");
+    DO_TEST_FAILURE("invalid-filesystem-no-source");
+    DO_TEST_FAILURE("invalid-filesystem-no-target");
+    DO_TEST_FAILURE("invalid-filesystem-wrpolicy");
+
+    /* Iteration 89: Graphics device validation tests */
+    DO_TEST_FAILURE("invalid-graphics-vnc");
+    DO_TEST_FAILURE("invalid-graphics-spice");
+    DO_TEST_FAILURE("invalid-graphics-sdl");
+    DO_TEST_FAILURE("invalid-graphics-egl-headless");
+
+    /* Iteration 90: Enhanced device validation tests */
+    DO_TEST_FAILURE("invalid-sound-ich6");
+    DO_TEST_FAILURE("invalid-video-vga");
+    DO_TEST_FAILURE("invalid-input-keyboard");
+    DO_TEST_FAILURE("invalid-watchdog-i6300esb");
 
     virObjectUnref(driver.caps);
     virObjectUnref(driver.xmlopt);

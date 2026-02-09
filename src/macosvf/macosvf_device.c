@@ -286,6 +286,87 @@ macosvfDomainSerialDefValidate(const virDomainChrDef *serial)
     return 0;
 }
 
+/* Validate filesystem (shared folder) device */
+static int
+macosvfDomainFSDefValidate(const virDomainFSDef *fs)
+{
+    /* macOS Virtualization.Framework supports:
+     * - virtio-9p filesystem model for shared folders
+     * - mount tag for identifying the shared folder
+     * - file or directory sources
+     */
+    if (fs->type != VIR_DOMAIN_FS_TYPE_MOUNT) {
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Filesystem type '%1$s' is not supported by macOS Virtualization.Framework. "
+                         "Only 'mount' type is supported for shared folders. "
+                         "Change the filesystem type to 'mount'."),
+                       virDomainFSTypeToString(fs->type));
+        return -1;
+    }
+
+    if (fs->fsdriver != VIR_DOMAIN_FS_DRIVER_TYPE_VIRTIOFS &&
+        fs->fsdriver != VIR_DOMAIN_FS_DRIVER_TYPE_DEFAULT &&
+        fs->fsdriver != 0) {
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Filesystem driver '%1$s' is not supported by macOS Virtualization.Framework. "
+                         "Only 'virtiofs' filesystem driver is supported for shared folders. "
+                         "Change the fsdriver to 'virtiofs' or remove the fsdriver attribute."),
+                       virDomainFSDriverTypeToString(fs->fsdriver));
+        return -1;
+    }
+
+    /* Validate that source path is specified */
+    if (!fs->src) {
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Filesystem source must be specified for shared folders. "
+                         "Add a 'source' element with the directory path to share."));
+        return -1;
+    }
+
+    /* Validate that mount tag (target) is specified */
+    if (!fs->dst || fs->dst[0] == '\0') {
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Filesystem target (mount tag) must be specified for shared folders. "
+                         "Add a 'target' element with the mount tag name."));
+        return -1;
+    }
+
+    /* Validate access mode - default and mapped are supported */
+    if (fs->accessmode != VIR_DOMAIN_FS_ACCESSMODE_PASSTHROUGH &&
+        fs->accessmode != VIR_DOMAIN_FS_ACCESSMODE_MAPPED &&
+        fs->accessmode != 0) {
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Filesystem access mode '%1$s' is not supported by macOS Virtualization.Framework. "
+                         "Supported modes are: 'passthrough', 'mapped'. "
+                         "Remove the accessmode attribute or use a supported mode."),
+                       virDomainFSAccessModeTypeToString(fs->accessmode));
+        return -1;
+    }
+
+    /* Validate wrpolicy - only default is supported */
+    if (fs->wrpolicy != VIR_DOMAIN_FS_WRPOLICY_DEFAULT &&
+        fs->wrpolicy != 0) {
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Filesystem write policy is not supported by macOS Virtualization.Framework. "
+                         "Remove the wrpolicy attribute from filesystem configuration."));
+        return -1;
+    }
+
+    /* Validate filesystem format - not applicable for virtio-9p */
+    if (fs->format) {
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Filesystem format is not supported for virtio-9p shared folders. "
+                         "Remove the format element from filesystem configuration."));
+        return -1;
+    }
+
+    /* Validate readonly mode is not set (shared folders should be writable) */
+    /* Note: readonly is supported but with limitations */
+    /* No validation needed for readonly */
+
+    return 0;
+}
+
 /* Validate controller device */
 static int
 macosvfDomainControllerDefValidate(const virDomainControllerDef *controller)
@@ -354,6 +435,265 @@ macosvfDomainControllerDefValidate(const virDomainControllerDef *controller)
     return 0;
 }
 
+/* Validate graphics device */
+static int
+macosvfDomainGraphicsDefValidate(const virDomainGraphicsDef *graphics)
+{
+    /* macOS Virtualization.Framework supports graphics devices
+     * Graphics are provided through VZGraphicsDeviceConfiguration
+     * Only basic graphics is supported - no VNC, SPICE, etc.
+     */
+    switch (graphics->type) {
+    case VIR_DOMAIN_GRAPHICS_TYPE_VNC:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("VNC graphics are not supported by macOS Virtualization.Framework. "
+                         "The framework provides native graphics output. "
+                         "Remove the <graphics type='vnc'> element from your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_GRAPHICS_TYPE_SPICE:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("SPICE graphics are not supported by macOS Virtualization.Framework. "
+                         "The framework provides native graphics output. "
+                         "Remove the <graphics type='spice'> element from your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_GRAPHICS_TYPE_RDP:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("RDP graphics are not supported by macOS Virtualization.Framework. "
+                         "The framework provides native graphics output. "
+                         "Remove the <graphics type='rdp'> element from your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_GRAPHICS_TYPE_DESKTOP:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Desktop graphics are not supported by macOS Virtualization.Framework. "
+                         "The framework provides native graphics output. "
+                         "Remove the <graphics type='desktop'> element from your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_GRAPHICS_TYPE_SDL:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("SDL graphics are not supported by macOS Virtualization.Framework. "
+                         "The framework provides native graphics output. "
+                         "Remove the <graphics type='sdl'> element from your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_GRAPHICS_TYPE_EGL_HEADLESS:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("EGL headless graphics are not supported by macOS Virtualization.Framework. "
+                         "The framework provides native graphics output. "
+                         "Remove the <graphics type='egl-headless'> element from your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_GRAPHICS_TYPE_DBUS:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("D-Bus graphics are not supported by macOS Virtualization.Framework. "
+                         "The framework provides native graphics output. "
+                         "Remove the <graphics type='dbus'> element from your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_GRAPHICS_TYPE_LAST:
+        break;
+
+    default:
+        /* For compatibility, we accept graphics elements but only use the video device
+         * to enable the graphics device in the VM configuration */
+        break;
+    }
+
+    return 0;
+}
+
+/* Validate sound device */
+static int
+macosvfDomainSoundDefValidate(const virDomainSoundDef *sound)
+{
+    /* macOS Virtualization.Framework supports audio devices
+     * through VZVirtioSoundDeviceConfiguration (macOS 12+)
+     * Only virtio audio model is supported
+     */
+    switch (sound->model) {
+    case VIR_DOMAIN_SOUND_MODEL_VIRTIO:
+        /* Virtio audio is supported */
+        break;
+
+    case VIR_DOMAIN_SOUND_MODEL_ICH6:
+    case VIR_DOMAIN_SOUND_MODEL_ICH7:
+    case VIR_DOMAIN_SOUND_MODEL_ICH9:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Intel ICH audio is not supported by macOS Virtualization.Framework. "
+                         "Only virtio audio is supported. "
+                         "Change the sound model to 'virtio' in your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_SOUND_MODEL_AC97:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("AC97 audio is not supported by macOS Virtualization.Framework. "
+                         "Only virtio audio is supported. "
+                         "Change the sound model to 'virtio' in your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_SOUND_MODEL_ES1370:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("ES1370 audio is not supported by macOS Virtualization.Framework. "
+                         "Only virtio audio is supported. "
+                         "Change the sound model to 'virtio' in your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_SOUND_MODEL_SB16:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Sound Blaster 16 audio is not supported by macOS Virtualization.Framework. "
+                         "Only virtio audio is supported. "
+                         "Change the sound model to 'virtio' in your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_SOUND_MODEL_USB:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("USB audio is not supported by macOS Virtualization.Framework. "
+                         "Only virtio audio is supported. "
+                         "Change the sound model to 'virtio' in your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_SOUND_MODEL_PCSPK:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("PC speaker audio is not supported by macOS Virtualization.Framework. "
+                         "Only virtio audio is supported. "
+                         "Change the sound model to 'virtio' in your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_SOUND_MODEL_LAST:
+        break;
+
+    default:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Audio device model '%1$s' is not supported by macOS Virtualization.Framework. "
+                         "Only virtio audio is supported. "
+                         "Change the sound model to 'virtio' in your configuration."),
+                       virDomainSoundModelTypeToString(sound->model));
+        return -1;
+    }
+
+    return 0;
+}
+
+/* Validate video device */
+static int
+macosvfDomainVideoDefValidate(const virDomainVideoDef *video)
+{
+    /* macOS Virtualization.Framework supports video devices
+     * Graphics are provided through VZGraphicsDeviceConfiguration
+     */
+    switch (video->type) {
+    case VIR_DOMAIN_VIDEO_TYPE_VGA:
+    case VIR_DOMAIN_VIDEO_TYPE_CIRRUS:
+    case VIR_DOMAIN_VIDEO_TYPE_VMVGA:
+    case VIR_DOMAIN_VIDEO_TYPE_QXL:
+    case VIR_DOMAIN_VIDEO_TYPE_VIRTIO:
+    case VIR_DOMAIN_VIDEO_TYPE_DEFAULT:
+    case VIR_DOMAIN_VIDEO_TYPE_XEN:
+    case VIR_DOMAIN_VIDEO_TYPE_VBOX:
+    case VIR_DOMAIN_VIDEO_TYPE_GOP:
+    case VIR_DOMAIN_VIDEO_TYPE_BOCHS:
+    case VIR_DOMAIN_VIDEO_TYPE_PARALLELS:
+    case VIR_DOMAIN_VIDEO_TYPE_NONE:
+    case VIR_DOMAIN_VIDEO_TYPE_RAMFB:
+        /* All video types are accepted - the framework handles graphics internally */
+        break;
+
+    case VIR_DOMAIN_VIDEO_TYPE_LAST:
+        break;
+
+    default:
+        /* Accept all video types - the framework handles graphics internally */
+        break;
+    }
+
+    return 0;
+}
+
+/* Validate input device */
+static int
+macosvfDomainInputDefValidate(const virDomainInputDef *input)
+{
+    /* macOS Virtualization.Framework supports input devices
+     * Keyboard and mouse/tablet input are provided through
+     * VZUSBKeyboardConfiguration and VZUSBScreenCoordinatePointingDeviceConfiguration
+     */
+    switch (input->type) {
+    case VIR_DOMAIN_INPUT_TYPE_KBD:
+        /* Keyboard input is supported */
+        break;
+
+    case VIR_DOMAIN_INPUT_TYPE_MOUSE:
+        /* Mouse input is supported via pointing device */
+        break;
+
+    case VIR_DOMAIN_INPUT_TYPE_TABLET:
+        /* Tablet input is supported via pointing device */
+        break;
+
+    case VIR_DOMAIN_INPUT_TYPE_LAST:
+        break;
+
+    default:
+        /* Accept all input types */
+        break;
+    }
+
+    return 0;
+}
+
+/* Validate watchdog device */
+static int
+macosvfDomainWatchdogDefValidate(const virDomainWatchdogDef *watchdog)
+{
+    /* macOS Virtualization.Framework does not support watchdog devices
+     * VM monitoring/hardware watchdog is not available
+     */
+    switch (watchdog->model) {
+    case VIR_DOMAIN_WATCHDOG_MODEL_I6300ESB:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Intel 6300ESB watchdog is not supported by macOS Virtualization.Framework. "
+                         "Hardware watchdog devices are not available. "
+                         "Remove the <watchdog model='i6300esb'/> element from your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_WATCHDOG_MODEL_IB700:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("IB700 watchdog is not supported by macOS Virtualization.Framework. "
+                         "Hardware watchdog devices are not available. "
+                         "Remove the <watchdog model='ib700'/> element from your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_WATCHDOG_MODEL_DIAG288:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("diag288 watchdog is not supported by macOS Virtualization.Framework. "
+                         "Hardware watchdog devices are not available. "
+                         "Remove the <watchdog model='diag288'/> element from your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_WATCHDOG_MODEL_ITCO:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Intel TCO watchdog is not supported by macOS Virtualization.Framework. "
+                         "Hardware watchdog devices are not available. "
+                         "Remove the <watchdog model='itco'/> element from your configuration."));
+        return -1;
+
+    case VIR_DOMAIN_WATCHDOG_MODEL_LAST:
+        break;
+
+    default:
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("Watchdog devices are not supported by macOS Virtualization.Framework. "
+                         "Hardware watchdog devices are not available. "
+                         "Remove any <watchdog> elements from your configuration."));
+        return -1;
+    }
+
+    return 0;
+}
+
 int
 macosvfDomainDeviceDefValidate(const virDomainDeviceDef *dev,
                                 const virDomainDef *def G_GNUC_UNUSED,
@@ -379,24 +719,16 @@ macosvfDomainDeviceDefValidate(const virDomainDeviceDef *dev,
         return macosvfDomainControllerDefValidate(dev->data.controller);
 
     case VIR_DOMAIN_DEVICE_INPUT:
-        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
-                       _("Input devices are not supported by macOS Virtualization.Framework"));
-        return -1;
+        return macosvfDomainInputDefValidate(dev->data.input);
 
     case VIR_DOMAIN_DEVICE_SOUND:
-        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
-                       _("Sound devices are not supported by macOS Virtualization.Framework"));
-        return -1;
+        return macosvfDomainSoundDefValidate(dev->data.sound);
 
     case VIR_DOMAIN_DEVICE_VIDEO:
-        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
-                       _("Video devices are not supported by macOS Virtualization.Framework"));
-        return -1;
+        return macosvfDomainVideoDefValidate(dev->data.video);
 
     case VIR_DOMAIN_DEVICE_GRAPHICS:
-        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
-                       _("Graphics devices are not supported by macOS Virtualization.Framework"));
-        return -1;
+        return macosvfDomainGraphicsDefValidate(dev->data.graphics);
 
     case VIR_DOMAIN_DEVICE_HOSTDEV:
         virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
@@ -404,9 +736,7 @@ macosvfDomainDeviceDefValidate(const virDomainDeviceDef *dev,
         return -1;
 
     case VIR_DOMAIN_DEVICE_WATCHDOG:
-        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
-                       _("Watchdog devices are not supported by macOS Virtualization.Framework"));
-        return -1;
+        return macosvfDomainWatchdogDefValidate(dev->data.watchdog);
 
     case VIR_DOMAIN_DEVICE_HUB:
         virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
@@ -437,6 +767,9 @@ macosvfDomainDeviceDefValidate(const virDomainDeviceDef *dev,
         /* VSOCK is tolerated for compatibility but not actively supported */
         break;
 
+    case VIR_DOMAIN_DEVICE_FS:
+        return macosvfDomainFSDefValidate(dev->data.fs);
+
     case VIR_DOMAIN_DEVICE_REDIRDEV:
         virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
                        _("Redirected devices are not supported by macOS Virtualization.Framework"));
@@ -460,7 +793,6 @@ macosvfDomainDeviceDefValidate(const virDomainDeviceDef *dev,
     /* Silently ignore these optional device types */
     case VIR_DOMAIN_DEVICE_NONE:
     case VIR_DOMAIN_DEVICE_LEASE:
-    case VIR_DOMAIN_DEVICE_FS:
     case VIR_DOMAIN_DEVICE_NVRAM:
     case VIR_DOMAIN_DEVICE_MEMORY:
     case VIR_DOMAIN_DEVICE_AUDIO:

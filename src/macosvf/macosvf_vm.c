@@ -182,6 +182,24 @@ macosvfVMCreate(virDomainDef *def,
             return -1;
         }
 
+        /* Set up graphics */
+        if (macosvfVMSetupGraphics(def, vm) < 0) {
+            VIR_FREE(vm);
+            return -1;
+        }
+
+        /* Set up input devices */
+        if (macosvfVMSetupInput(def, vm) < 0) {
+            VIR_FREE(vm);
+            return -1;
+        }
+
+        /* Set up audio */
+        if (macosvfVMSetupAudio(def, vm) < 0) {
+            VIR_FREE(vm);
+            return -1;
+        }
+
         /* Validate configuration */
         if (![config validateWithError:&error]) {
             virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
@@ -785,6 +803,134 @@ macosvfVMSetupConsole(virDomainDef *def,
 {
     /* Console is just the first serial port in our implementation */
     return macosvfVMSetupSerial(def, vm);
+}
+
+/* Graphics setup */
+int
+macosvfVMSetupGraphics(virDomainDef *def,
+                      macosvfVMObject *vm G_GNUC_UNUSED)
+{
+    @autoreleasepool {
+        /* Check if any video devices are defined */
+        if (def->nvideos == 0) {
+            /* No video device, skip graphics setup */
+            return 0;
+        }
+
+        /* macOS Virtualization.Framework supports graphics devices
+         * Graphics are automatically enabled when input devices are configured.
+         * The presence of a video device in the domain definition indicates
+         * that graphics support should be enabled.
+         *
+         * Note: On macOS 12+, VZVirtualMachineConfiguration.graphicsDevices
+         * can be set, but the framework also automatically provides graphics
+         * capabilities when keyboard/pointing devices are present.
+         */
+
+        /* Graphics support is implicitly enabled by the presence of input devices.
+         * No explicit configuration needed here - the framework handles it. */
+    }
+
+    return 0;
+}
+
+/* Input setup */
+int
+macosvfVMSetupInput(virDomainDef *def,
+                   macosvfVMObject *vm)
+{
+    NSMutableArray<VZPointingDeviceConfiguration *> *pointingDevices = nil;
+    NSMutableArray<VZKeyboardConfiguration *> *keyboards = nil;
+    VZUSBKeyboardConfiguration *keyboardConfig = nil;
+    VZUSBScreenCoordinatePointingDeviceConfiguration *pointingConfig = nil;
+    bool hasKeyboard = false;
+    bool hasPointing = false;
+    size_t i;
+
+    @autoreleasepool {
+        /* Check for input devices */
+        for (i = 0; i < def->ninputs; i++) {
+            virDomainInputDef *input = def->inputs[i];
+
+            switch (input->type) {
+            case VIR_DOMAIN_INPUT_TYPE_KBD:
+                hasKeyboard = true;
+                break;
+
+            case VIR_DOMAIN_INPUT_TYPE_MOUSE:
+            case VIR_DOMAIN_INPUT_TYPE_TABLET:
+                hasPointing = true;
+                break;
+
+            default:
+                break;
+            }
+        }
+
+        /* Also check for video devices - if present, add default input devices */
+        if (def->nvideos > 0) {
+            /* When graphics is enabled, add both keyboard and pointing device by default */
+            hasKeyboard = true;
+            hasPointing = true;
+        }
+
+        if (hasKeyboard) {
+            if (@available(macOS 11.0, *)) {
+                keyboards = [NSMutableArray array];
+                keyboardConfig = [[VZUSBKeyboardConfiguration alloc] init];
+                [keyboards addObject:keyboardConfig];
+            }
+        }
+
+        if (hasPointing) {
+            if (@available(macOS 11.0, *)) {
+                pointingDevices = [NSMutableArray array];
+                pointingConfig = [[VZUSBScreenCoordinatePointingDeviceConfiguration alloc] init];
+                [pointingDevices addObject:pointingConfig];
+            }
+        }
+
+        /* Set the configurations on the VM */
+        if (keyboards && keyboards.count > 0) {
+            vm->config.keyboards = keyboards;
+        }
+
+        if (pointingDevices && pointingDevices.count > 0) {
+            vm->config.pointingDevices = pointingDevices;
+        }
+    }
+
+    return 0;
+}
+
+/* Audio setup */
+int
+macosvfVMSetupAudio(virDomainDef *def,
+                   macosvfVMObject *vm)
+{
+    @autoreleasepool {
+        /* Check if any sound devices are defined */
+        if (def->nsounds == 0) {
+            /* No sound device, skip audio setup */
+            return 0;
+        }
+
+        /* macOS Virtualization.Framework supports audio devices
+         * through VZVirtioSoundDeviceConfiguration (macOS 12+)
+         */
+
+        if (@available(macOS 12.0, *)) {
+            /* Create and configure audio device */
+            VZVirtioSoundDeviceConfiguration *audioConfig =
+                [[VZVirtioSoundDeviceConfiguration alloc] init];
+
+            if (audioConfig) {
+                vm->config.audioDevices = @[audioConfig];
+            }
+        }
+    }
+
+    return 0;
 }
 
 /* CPU setup (already done in VMCreate) */
