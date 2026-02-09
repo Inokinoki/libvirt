@@ -40,6 +40,7 @@ jobs:
           brew install meson ninja pkg-config
           brew install glib gnutls libxml2 readline xz
           brew install libpcap
+          brew install make gnu-sed grep
 
       - name: Configure build
         run: |
