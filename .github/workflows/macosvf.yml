@@ -39,7 +39,7 @@ jobs:
           brew update
           brew install meson ninja pkg-config
           brew install glib gnutls libxml2 readline xz
-          brew install libpcap numactl
+          brew install libpcap
 
       - name: Configure build
         run: |
