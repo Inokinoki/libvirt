@@ -47,7 +47,7 @@ testCPUStats(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create a minimal domain definition */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -58,9 +58,8 @@ testCPUStats(const void *data G_GNUC_UNUSED)
     def->os.machine = g_strdup("macosvf");
 
     /* Set basic CPU and memory */
-    def->vcpus = g_new0(virDomainVcpuDef, 1);
-    def->vcpus[0].type = VIR_DOMAIN_VCPU_TYPE-online;
-    def->maxvcpus = 2;
+    virDomainDefSetVcpusMax(def, 2, NULL);
+    virDomainDefSetVcpus(def, 2);
 
     def->mem.cur_balloon = 1024 * 1024; /* 1GB in KiB */
 
@@ -104,7 +103,7 @@ testMemoryStats(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create a minimal domain definition */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -115,9 +114,8 @@ testMemoryStats(const void *data G_GNUC_UNUSED)
     def->os.machine = g_strdup("macosvf");
 
     /* Set basic CPU and memory */
-    def->vcpus = g_new0(virDomainVcpuDef, 1);
-    def->vcpus[0].type = VIR_DOMAIN_VCPU_TYPE-online;
-    def->maxvcpus = 2;
+    virDomainDefSetVcpusMax(def, 2, NULL);
+    virDomainDefSetVcpus(def, 2);
 
     def->mem.cur_balloon = 1024 * 1024; /* 1GB in KiB */
 
@@ -161,7 +159,7 @@ testVMStateTransitions(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create a minimal domain definition */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -172,9 +170,8 @@ testVMStateTransitions(const void *data G_GNUC_UNUSED)
     def->os.machine = g_strdup("macosvf");
 
     /* Set basic CPU and memory */
-    def->vcpus = g_new0(virDomainVcpuDef, 1);
-    def->vcpus[0].type = VIR_DOMAIN_VCPU_TYPE-online;
-    def->maxvcpus = 2;
+    virDomainDefSetVcpusMax(def, 2, NULL);
+    virDomainDefSetVcpus(def, 2);
 
     def->mem.cur_balloon = 1024 * 1024; /* 1GB in KiB */
 
@@ -215,7 +212,7 @@ testPauseResumeErrors(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create a minimal domain definition */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -226,9 +223,8 @@ testPauseResumeErrors(const void *data G_GNUC_UNUSED)
     def->os.machine = g_strdup("macosvf");
 
     /* Set basic CPU and memory */
-    def->vcpus = g_new0(virDomainVcpuDef, 1);
-    def->vcpus[0].type = VIR_DOMAIN_VCPU_TYPE-online;
-    def->maxvcpus = 2;
+    virDomainDefSetVcpusMax(def, 2, NULL);
+    virDomainDefSetVcpus(def, 2);
 
     def->mem.cur_balloon = 1024 * 1024; /* 1GB in KiB */
 
@@ -283,7 +279,7 @@ testStatsMultiVCPU(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create a domain definition with multiple vCPUs */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -294,11 +290,8 @@ testStatsMultiVCPU(const void *data G_GNUC_UNUSED)
     def->os.machine = g_strdup("macosvf");
 
     /* Set up 4 vCPUs */
-    def->vcpus = g_new0(virDomainVcpuDef, 4);
-    for (unsigned int i = 0; i < 4; i++) {
-        def->vcpus[i].type = VIR_DOMAIN_VCPU_TYPE-online;
-    }
-    def->maxvcpus = 4;
+    virDomainDefSetVcpusMax(def, 4, NULL);
+    virDomainDefSetVcpus(def, 4);
 
     def->mem.cur_balloon = 2048 * 1024; /* 2GB in KiB */
 
@@ -341,7 +334,7 @@ testVMLifecycleStates(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create a minimal domain definition */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -352,9 +345,8 @@ testVMLifecycleStates(const void *data G_GNUC_UNUSED)
     def->os.machine = g_strdup("macosvf");
 
     /* Set basic CPU and memory */
-    def->vcpus = g_new0(virDomainVcpuDef, 1);
-    def->vcpus[0].type = VIR_DOMAIN_VCPU_TYPE-online;
-    def->maxvcpus = 1;
+    virDomainDefSetVcpusMax(def, 1, NULL);
+    virDomainDefSetVcpus(def, 1);
 
     def->mem.cur_balloon = 512 * 1024; /* 512MB in KiB */
 

@@ -44,7 +44,7 @@ testNumaParametersBasic(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create domain definition */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -100,7 +100,7 @@ testNumaParametersMemorySizes(const void *data G_GNUC_UNUSED)
         g_autoptr(virDomainDef) def = NULL;
         macosvfVMObject *vm = NULL;
 
-        def = virDomainDefNew();
+        def = virDomainDefNew(NULL);
         if (!def) {
             fprintf(stderr, "%s: Failed to create domain definition for %s\n",
                     __FUNCTION__, configs[i].name);
@@ -190,7 +190,7 @@ testNumaParametersCPUConfigurations(const void *data G_GNUC_UNUSED)
         g_autoptr(virDomainDef) def = NULL;
         macosvfVMObject *vm = NULL;
 
-        def = virDomainDefNew();
+        def = virDomainDefNew(NULL);
         if (!def) {
             fprintf(stderr, "%s: Failed to create domain definition for %s\n",
                     __FUNCTION__, configs[i].name);
@@ -204,9 +204,8 @@ testNumaParametersCPUConfigurations(const void *data G_GNUC_UNUSED)
         virUUIDGenerate(def->uuid);
         def->mem.cur_balloon = configs[i].memory;
 
-        def->vcpus = g_new0(virDomainVcpuDef, 1);
-        def->vcpus[0].type = VIR_DOMAIN_VCPU_TYPE-online;
-        def->maxvcpus = configs[i].vcpus;
+        virDomainDefSetVcpusMax(def, configs[i].vcpus, NULL);
+        virDomainDefSetVcpus(def, configs[i].vcpus);
 
         if (macosvfVMCreate(def, &vm) < 0) {
             fprintf(stderr, "%s: Failed to create VM for %s\n",
@@ -235,7 +234,7 @@ testNumaParametersEdgeCases(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Test with minimum memory */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -259,7 +258,7 @@ testNumaParametersEdgeCases(const void *data G_GNUC_UNUSED)
     def = NULL;
 
     /* Test with large memory */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;

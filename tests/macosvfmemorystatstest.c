@@ -60,7 +60,7 @@ testMemoryStats(const void *data G_GNUC_UNUSED)
 
     for (int i = 0; configs[i].name != NULL; i++) {
         /* Create domain definition */
-        def = virDomainDefNew();
+        def = virDomainDefNew(NULL);
         if (!def) {
             fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
             goto cleanup;
@@ -72,9 +72,8 @@ testMemoryStats(const void *data G_GNUC_UNUSED)
         def->name = g_strdup(configs[i].name);
         virUUIDGenerate(def->uuid);
 
-        def->vcpus = g_new0(virDomainVcpuDef, 1);
-        def->vcpus[0].type = VIR_DOMAIN_VCPU_TYPE-online;
-        def->maxvcpus = configs[i].vcpus;
+        virDomainDefSetVcpusMax(def, configs[i].vcpus, NULL);
+        virDomainDefSetVcpus(def, configs[i].vcpus);
 
         def->mem.cur_balloon = configs[i].memory;
 
@@ -155,7 +154,7 @@ testMemoryStatsSizes(const void *data G_GNUC_UNUSED)
 
     for (int i = 0; i < nsizes; i++) {
         /* Create domain definition */
-        def = virDomainDefNew();
+        def = virDomainDefNew(NULL);
         if (!def) {
             fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
             goto cleanup;
@@ -230,7 +229,7 @@ testMemoryStatsStateTransitions(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create domain definition */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -283,7 +282,7 @@ testMemoryStatsTags(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create domain definition */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -371,7 +370,7 @@ testMemoryStatsEdgeCases(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Test with minimum memory */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -401,7 +400,7 @@ testMemoryStatsEdgeCases(const void *data G_GNUC_UNUSED)
     def = NULL;
 
     /* Test with large memory */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;

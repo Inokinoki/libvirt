@@ -46,7 +46,7 @@ testInterfaceParametersBasic(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create domain definition */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -60,7 +60,7 @@ testInterfaceParametersBasic(const void *data G_GNUC_UNUSED)
     def->mem.cur_balloon = 1024 * 1024;  /* 1 GB */
 
     /* Add a network interface */
-    net = virDomainNetDefNew();
+    net = virDomainNetDefNew(NULL);
     if (!net) {
         fprintf(stderr, "%s: Failed to create network interface\n", __FUNCTION__);
         goto cleanup;
@@ -110,7 +110,7 @@ testInterfaceParametersConfigs(const void *data G_GNUC_UNUSED)
         macosvfVMObject *vm = NULL;
         virDomainNetDef *net = NULL;
 
-        def = virDomainDefNew();
+        def = virDomainDefNew(NULL);
         if (!def) {
             fprintf(stderr, "%s: Failed to create domain definition for %s\n",
                     __FUNCTION__, configs[i].name);
@@ -124,7 +124,7 @@ testInterfaceParametersConfigs(const void *data G_GNUC_UNUSED)
         virUUIDGenerate(def->uuid);
         def->mem.cur_balloon = 1024 * 1024;
 
-        net = virDomainNetDefNew();
+        net = virDomainNetDefNew(NULL);
         if (!net) {
             fprintf(stderr, "%s: Failed to create network for %s\n",
                     __FUNCTION__, configs[i].name);
@@ -218,7 +218,7 @@ testInterfaceParametersMultiple(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create domain definition */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -233,7 +233,7 @@ testInterfaceParametersMultiple(const void *data G_GNUC_UNUSED)
 
     /* Add multiple network interfaces */
     for (int i = 0; i < 2; i++) {
-        virDomainNetDef *net = virDomainNetDefNew();
+        virDomainNetDef *net = virDomainNetDefNew(NULL);
         if (!net) {
             fprintf(stderr, "%s: Failed to create network interface %d\n", __FUNCTION__, i);
             goto cleanup;
@@ -274,7 +274,7 @@ testInterfaceParametersEdgeCases(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Test with minimal configuration */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -288,7 +288,7 @@ testInterfaceParametersEdgeCases(const void *data G_GNUC_UNUSED)
     def->mem.cur_balloon = 512 * 1024;  /* 512 MB */
 
     /* Add single network interface */
-    virDomainNetDef *net = virDomainNetDefNew();
+    virDomainNetDef *net = virDomainNetDefNew(NULL);
     if (!net) {
         fprintf(stderr, "%s: Failed to create network interface\n", __FUNCTION__);
         goto cleanup;
@@ -314,7 +314,7 @@ testInterfaceParametersEdgeCases(const void *data G_GNUC_UNUSED)
     def = NULL;
 
     /* Test with larger configuration */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -329,7 +329,7 @@ testInterfaceParametersEdgeCases(const void *data G_GNUC_UNUSED)
 
     /* Add multiple network interfaces */
     for (int i = 0; i < 4; i++) {
-        virDomainNetDef *net = virDomainNetDefNew();
+        virDomainNetDef *net = virDomainNetDefNew(NULL);
         if (!net) {
             fprintf(stderr, "%s: Failed to create network interface %d\n", __FUNCTION__, i);
             goto cleanup;

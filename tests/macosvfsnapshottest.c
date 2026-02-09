@@ -110,7 +110,7 @@ testSnapshotCreate(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create a test domain */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -122,9 +122,8 @@ testSnapshotCreate(const void *data G_GNUC_UNUSED)
     def->name = g_strdup("test-snapshot-domain");
     virUUIDGenerate(def->uuid);
 
-    def->vcpus = g_new0(virDomainVcpuDef, 1);
-    def->vcpus[0].type = VIR_DOMAIN_VCPU_TYPE-online;
-    def->maxvcpus = 2;
+    virDomainDefSetVcpusMax(def, 2, NULL);
+    virDomainDefSetVcpus(def, 2);
 
     def->mem.cur_balloon = 1024 * 1024;
 

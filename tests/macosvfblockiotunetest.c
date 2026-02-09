@@ -46,7 +46,7 @@ testBlockIoTuneBasic(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create domain definition */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -60,7 +60,7 @@ testBlockIoTuneBasic(const void *data G_GNUC_UNUSED)
     def->mem.cur_balloon = 1024 * 1024;  /* 1 GB */
 
     /* Add a disk */
-    disk = virDomainDiskDefNew();
+    disk = virDomainDiskDefNew(NULL);
     if (!disk) {
         fprintf(stderr, "%s: Failed to create disk definition\n", __FUNCTION__);
         goto cleanup;
@@ -119,7 +119,7 @@ testBlockIoTuneDiskConfigurations(const void *data G_GNUC_UNUSED)
         macosvfVMObject *vm = NULL;
         virDomainDiskDef *disk = NULL;
 
-        def = virDomainDefNew();
+        def = virDomainDefNew(NULL);
         if (!def) {
             fprintf(stderr, "%s: Failed to create domain definition for %s\n",
                     __FUNCTION__, configs[i].name);
@@ -134,7 +134,7 @@ testBlockIoTuneDiskConfigurations(const void *data G_GNUC_UNUSED)
         def->mem.cur_balloon = 1024 * 1024;
 
         /* Add a disk */
-        disk = virDomainDiskDefNew();
+        disk = virDomainDiskDefNew(NULL);
         if (!disk) {
             fprintf(stderr, "%s: Failed to create disk for %s\n",
                     __FUNCTION__, configs[i].name);
@@ -182,7 +182,7 @@ testBlockIoTuneMultipleDisks(const void *data G_GNUC_UNUSED)
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
     /* Create domain definition */
-    def = virDomainDefNew();
+    def = virDomainDefNew(NULL);
     if (!def) {
         fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
         goto cleanup;
@@ -197,7 +197,7 @@ testBlockIoTuneMultipleDisks(const void *data G_GNUC_UNUSED)
 
     /* Add multiple disks */
     for (int i = 0; i < 3; i++) {
-        virDomainDiskDef *disk = virDomainDiskDefNew();
+        virDomainDiskDef *disk = virDomainDiskDefNew(NULL);
         if (!disk) {
             fprintf(stderr, "%s: Failed to create disk %d\n", __FUNCTION__, i);
             goto cleanup;
@@ -295,7 +295,7 @@ testBlockIoTuneMemoryConfigurations(const void *data G_GNUC_UNUSED)
         macosvfVMObject *vm = NULL;
         virDomainDiskDef *disk = NULL;
 
-        def = virDomainDefNew();
+        def = virDomainDefNew(NULL);
         if (!def) {
             fprintf(stderr, "%s: Failed to create domain definition for %s\n",
                     __FUNCTION__, configs[i].name);
@@ -310,7 +310,7 @@ testBlockIoTuneMemoryConfigurations(const void *data G_GNUC_UNUSED)
         def->mem.cur_balloon = configs[i].memory;
 
         /* Add a disk */
-        disk = virDomainDiskDefNew();
+        disk = virDomainDiskDefNew(NULL);
         if (!disk) {
             fprintf(stderr, "%s: Failed to create disk for %s\n",
                     __FUNCTION__, configs[i].name);
