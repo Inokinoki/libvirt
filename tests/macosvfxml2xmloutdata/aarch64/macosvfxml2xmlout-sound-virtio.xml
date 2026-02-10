@@ -21,7 +21,6 @@
       <source file='/var/lib/libvirt/images/macosvf-test.qcow2'/>
       <target dev='vda' bus='virtio'/>
     </disk>
-    <sound model='virtio'/>
     <controller type='pci' index='0' model='pci-root'/>
     <controller type='isa' index='0'/>
     <serial type='pty'>
@@ -30,5 +29,6 @@
     <console type='pty'>
       <target type='serial' port='0'/>
     </console>
+    <sound model='virtio' streams='2'/>
   </devices>
 </domain>
