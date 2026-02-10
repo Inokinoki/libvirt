@@ -9,12 +9,18 @@
     <kernel>/boot/vmlinuz</kernel>
     <initrd>/boot/initrd.img</initrd>
     <cmdline>root=/dev/vda1 console=ttyAMA0</cmdline>
+    <boot dev='hd'/>
   </os>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
   <devices>
     <disk type='file' device='disk'>
-      <source file='/var/lib/libvirt/images/test.vmdk'/>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/var/lib/libvirt/images/test.qcow2'/>
       <target dev='vda' bus='virtio'/>
-      <driver name='qemu' type='vmdk'/>
     </disk>
+    <controller type='pci' index='0' model='pci-root'/>
   </devices>
 </domain>
