@@ -18,8 +18,6 @@
       <target dev='vda' bus='virtio'/>
       <iotune>
         <total_bytes_sec>10000000</total_bytes_sec>
-        <read_bytes_sec>5000000</read_bytes_sec>
-        <write_bytes_sec>5000000</write_bytes_sec>
         <total_iops_sec>1000</total_iops_sec>
       </iotune>
     </disk>
