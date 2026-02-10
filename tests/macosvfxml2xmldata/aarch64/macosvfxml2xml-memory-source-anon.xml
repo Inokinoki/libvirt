@@ -2,9 +2,6 @@
   <name>memory-source-anon</name>
   <uuid>bbbb5555-cccc-6666-dddd-eeee7777ffff</uuid>
   <memory unit='KiB'>1048576</memory>
-  <memoryBacking>
-    <source type='anonymous'/>
-  </memoryBacking>
   <vcpu placement='static'>1</vcpu>
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>
