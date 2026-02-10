@@ -7,7 +7,6 @@
   <clock offset='utc'>
     <timer name='platform' present='yes'/>
     <timer name='rtc' tickpolicy='catchup'/>
-    <timer name='hypervclock' present='no'/>
   </clock>
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>

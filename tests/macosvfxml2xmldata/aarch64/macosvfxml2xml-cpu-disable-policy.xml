@@ -10,8 +10,7 @@
   <features>
     <acpi/>
   </features>
-  <cpu mode='custom' match='exact'>
-    <model fallback='forbid'>Cortex-A72</model>
+  <cpu mode='host-model'>
     <feature policy='disable' name='pmu'/>
   </cpu>
   <clock offset='utc'/>
