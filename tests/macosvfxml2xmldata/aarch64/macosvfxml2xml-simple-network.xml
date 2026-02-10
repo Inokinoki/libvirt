@@ -18,6 +18,7 @@
       <target dev='vda' bus='virtio'/>
     </disk>
     <interface type='network'>
+      <mac address='52:54:00:ce:55:49'/>
       <source network='default'/>
     </interface>
     <console type='pty'>
