@@ -8,7 +8,6 @@
     <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
     <boot dev='hd'/>
     <boot dev='cdrom'/>
-    <boot dev='network'/>
   </os>
   <features>
     <acpi/>

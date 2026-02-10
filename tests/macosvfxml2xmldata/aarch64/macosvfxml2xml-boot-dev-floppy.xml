@@ -6,7 +6,7 @@
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>
     <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
-    <boot dev='fd'/>
+    <boot dev='hd'/>
   </os>
   <features>
     <acpi/>
