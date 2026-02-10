@@ -70,10 +70,7 @@ testInterfaceParametersBasic(const void *data G_GNUC_UNUSED)
     net->model = VIR_DOMAIN_NET_MODEL_VIRTIO;
     net->ifname = g_strdup("vnet0");
 
-    if (VIR_APPEND_ELEMENT(def->nets, net) < 0) {
-        fprintf(stderr, "%s: Failed to add network interface\n", __FUNCTION__);
-        goto cleanup;
-    }
+    VIR_APPEND_ELEMENT(def->nets, def->nnets, net);
 
     /* Create VM object */
     if (macosvfVMCreate(def, &vm) < 0) {
@@ -135,11 +132,7 @@ testInterfaceParametersConfigs(const void *data G_GNUC_UNUSED)
         net->model = VIR_DOMAIN_NET_MODEL_VIRTIO;
         net->ifname = g_strdup("vnet0");
 
-        if (VIR_APPEND_ELEMENT(def->nets, net) < 0) {
-            fprintf(stderr, "%s: Failed to add network for %s\n",
-                    __FUNCTION__, configs[i].name);
-            goto cleanup;
-        }
+        VIR_APPEND_ELEMENT(def->nets, def->nnets, net);
 
         if (macosvfVMCreate(def, &vm) < 0) {
             fprintf(stderr, "%s: Failed to create VM for %s\n",
@@ -243,10 +236,7 @@ testInterfaceParametersMultiple(const void *data G_GNUC_UNUSED)
         net->model = VIR_DOMAIN_NET_MODEL_VIRTIO;
         net->ifname = g_strdup_printf("vnet%d", i);
 
-        if (VIR_APPEND_ELEMENT(def->nets, net) < 0) {
-            fprintf(stderr, "%s: Failed to add network interface %d\n", __FUNCTION__, i);
-            goto cleanup;
-        }
+        VIR_APPEND_ELEMENT(def->nets, def->nnets, net);
     }
 
     /* Create VM object */
@@ -269,6 +259,7 @@ testInterfaceParametersEdgeCases(const void *data G_GNUC_UNUSED)
 {
     g_autoptr(virDomainDef) def = NULL;
     macosvfVMObject *vm = NULL;
+    virDomainNetDef *net = NULL;
     int ret = -1;
 
     virTestSetHostArch(VIR_ARCH_AARCH64);
@@ -288,7 +279,7 @@ testInterfaceParametersEdgeCases(const void *data G_GNUC_UNUSED)
     def->mem.cur_balloon = 512 * 1024;  /* 512 MB */
 
     /* Add single network interface */
-    virDomainNetDef *net = virDomainNetDefNew(NULL);
+    net = virDomainNetDefNew(NULL);
     if (!net) {
         fprintf(stderr, "%s: Failed to create network interface\n", __FUNCTION__);
         goto cleanup;
@@ -298,10 +289,7 @@ testInterfaceParametersEdgeCases(const void *data G_GNUC_UNUSED)
     net->model = VIR_DOMAIN_NET_MODEL_VIRTIO;
     net->ifname = g_strdup("vnet0");
 
-    if (VIR_APPEND_ELEMENT(def->nets, net) < 0) {
-        fprintf(stderr, "%s: Failed to add network interface\n", __FUNCTION__);
-        goto cleanup;
-    }
+    VIR_APPEND_ELEMENT(def->nets, def->nnets, net);
 
     if (macosvfVMCreate(def, &vm) < 0) {
         fprintf(stderr, "%s: Failed to create VM object\n", __FUNCTION__);
@@ -310,8 +298,6 @@ testInterfaceParametersEdgeCases(const void *data G_GNUC_UNUSED)
 
     macosvfVMFree(vm);
     vm = NULL;
-    virDomainDefFree(def);
-    def = NULL;
 
     /* Test with larger configuration */
     def = virDomainDefNew(NULL);
@@ -329,7 +315,7 @@ testInterfaceParametersEdgeCases(const void *data G_GNUC_UNUSED)
 
     /* Add multiple network interfaces */
     for (int i = 0; i < 4; i++) {
-        virDomainNetDef *net = virDomainNetDefNew(NULL);
+        net = virDomainNetDefNew(NULL);
         if (!net) {
             fprintf(stderr, "%s: Failed to create network interface %d\n", __FUNCTION__, i);
             goto cleanup;
@@ -339,10 +325,7 @@ testInterfaceParametersEdgeCases(const void *data G_GNUC_UNUSED)
         net->model = VIR_DOMAIN_NET_MODEL_VIRTIO;
         net->ifname = g_strdup_printf("vnet%d", i);
 
-        if (VIR_APPEND_ELEMENT(def->nets, net) < 0) {
-            fprintf(stderr, "%s: Failed to add network interface %d\n", __FUNCTION__, i);
-            goto cleanup;
-        }
+        VIR_APPEND_ELEMENT(def->nets, def->nnets, net);
     }
 
     if (macosvfVMCreate(def, &vm) < 0) {

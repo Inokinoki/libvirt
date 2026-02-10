@@ -70,10 +70,7 @@ testBlockIoTuneBasic(const void *data G_GNUC_UNUSED)
     disk->device = VIR_DOMAIN_DISK_DEVICE_DISK;
     disk->bus = VIR_DOMAIN_DISK_BUS_VIRTIO;
 
-    if (VIR_APPEND_ELEMENT(def->disks, disk) < 0) {
-        fprintf(stderr, "%s: Failed to add disk to domain\n", __FUNCTION__);
-        goto cleanup;
-    }
+    VIR_APPEND_ELEMENT(def->disks, def->ndisks, disk);
 
     /* Create VM object */
     if (macosvfVMCreate(def, &vm) < 0) {
@@ -149,11 +146,7 @@ testBlockIoTuneDiskConfigurations(const void *data G_GNUC_UNUSED)
         else if (STREQ(configs[i].bus, "ide"))
             disk->bus = VIR_DOMAIN_DISK_BUS_IDE;
 
-        if (VIR_APPEND_ELEMENT(def->disks, disk) < 0) {
-            fprintf(stderr, "%s: Failed to add disk for %s\n",
-                    __FUNCTION__, configs[i].name);
-            goto cleanup;
-        }
+        VIR_APPEND_ELEMENT(def->disks, def->ndisks, disk);
 
         if (macosvfVMCreate(def, &vm) < 0) {
             fprintf(stderr, "%s: Failed to create VM for %s\n",
@@ -207,10 +200,7 @@ testBlockIoTuneMultipleDisks(const void *data G_GNUC_UNUSED)
         disk->device = VIR_DOMAIN_DISK_DEVICE_DISK;
         disk->bus = VIR_DOMAIN_DISK_BUS_VIRTIO;
 
-        if (VIR_APPEND_ELEMENT(def->disks, disk) < 0) {
-            fprintf(stderr, "%s: Failed to add disk %d\n", __FUNCTION__, i);
-            goto cleanup;
-        }
+        VIR_APPEND_ELEMENT(def->disks, def->ndisks, disk);
     }
 
     /* Create VM object */
@@ -321,11 +311,7 @@ testBlockIoTuneMemoryConfigurations(const void *data G_GNUC_UNUSED)
         disk->device = VIR_DOMAIN_DISK_DEVICE_DISK;
         disk->bus = VIR_DOMAIN_DISK_BUS_VIRTIO;
 
-        if (VIR_APPEND_ELEMENT(def->disks, disk) < 0) {
-            fprintf(stderr, "%s: Failed to add disk for %s\n",
-                    __FUNCTION__, configs[i].name);
-            goto cleanup;
-        }
+        VIR_APPEND_ELEMENT(def->disks, def->ndisks, disk);
 
         if (macosvfVMCreate(def, &vm) < 0) {
             fprintf(stderr, "%s: Failed to create VM for %s\n",

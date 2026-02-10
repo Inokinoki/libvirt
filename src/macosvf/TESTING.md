@@ -29,7 +29,7 @@ The macOSVF driver has comprehensive test coverage to ensure proper functionalit
 
 ## Test Coverage
 
-### Valid Configurations (20 tests)
+### Valid Configurations (30 tests)
 
 1. **minimal.xml** - Minimal domain configuration
    - Tests absolute minimum required settings
@@ -124,7 +124,38 @@ The macOSVF driver has comprehensive test coverage to ensure proper functionalit
     - Tests automatic PCI/ISA controller addition
     - Controller validation
 
-### Invalid Configurations (48+ tests)
+24. **filesystem-basic.xml** - Basic filesystem (shared folder)
+    - Tests virtiofs shared folder support
+    - Validates mount configuration
+
+25. **filesystem-readonly.xml** - Read-only filesystem
+    - Tests read-only shared folder
+    - Validates accessmode='mapped'
+
+26. **filesystem-multiple.xml** - Multiple filesystems
+    - Tests multiple shared folders
+    - Validates multiple mount points
+
+27. **input-keyboard.xml** - USB keyboard input device
+    - Tests USB keyboard input support
+    - Validates keyboard device configuration
+
+28. **graphics-basic.xml** - Virtio graphics with input
+    - Tests virtio video device
+    - Validates keyboard and tablet input
+    - Tests graphics device support
+
+29. **graphics-vga.xml** - VGA graphics with mouse
+    - Tests VGA video device
+    - Validates mouse input
+    - Tests graphics device support
+
+30. **sound-virtio.xml** - Virtio sound device
+    - Tests virtio audio device
+    - Validates audio configuration
+    - Tests sound device support
+
+### Invalid Configurations (53+ tests)
 
 The test suite includes comprehensive validation tests for unsupported configurations:
 
@@ -188,6 +219,25 @@ The test suite includes comprehensive validation tests for unsupported configura
 #### Network Validation
 - `invalid-net-bandwidth.xml` - Rejects bandwidth limiting
 - `invalid-net-filter.xml` - Rejects network filters
+
+#### Filesystem/Shared Folder Validation
+- `invalid-filesystem-type-ram.xml` - Rejects non-mount filesystem types
+- `invalid-filesystem-driver-nbd.xml` - Rejects non-virtiofs drivers
+- `invalid-filesystem-no-source.xml` - Rejects missing source directory
+- `invalid-filesystem-no-target.xml` - Rejects missing mount tag
+- `invalid-filesystem-wrpolicy.xml` - Rejects write policy configuration
+
+#### Graphics Device Validation
+- `invalid-graphics-vnc.xml` - Rejects VNC graphics with helpful message
+- `invalid-graphics-spice.xml` - Rejects SPICE graphics with helpful message
+- `invalid-graphics-sdl.xml` - Rejects SDL graphics with helpful message
+- `invalid-graphics-egl-headless.xml` - Rejects EGL headless graphics
+
+#### Unsupported Device Validation
+- `invalid-sound-ich6.xml` - Rejects ICH audio with helpful message
+- `invalid-watchdog-i6300esb.xml` - Rejects i6300esb watchdog with helpful message
+
+**Note**: Video devices, input devices (keyboard, mouse, tablet), and virtio audio are now supported. See valid configuration tests above for examples. Legacy audio models (ICH6, ICH7, ICH9, AC97, ES1370, SB16, USB, PCSPK) are not supported.
 
 ## Running Tests
 
@@ -255,17 +305,19 @@ Tests will automatically skip on non-ARM64 platforms.
 
 ## Coverage Summary
 
-- **Valid configurations**: 23 tests
-- **Invalid configurations**: 48+ tests
-- **Total test cases**: 70+ tests
+- **Valid configurations**: 26 tests
+- **Invalid configurations**: 57+ tests
+- **Total test cases**: 83+ tests
 - **Coverage areas**:
   - Domain lifecycle
-  - Device validation
+  - Device validation (disk, network, console, filesystem, graphics, sound, video, input, watchdog)
   - CPU configuration
   - Memory configuration
   - Network configuration
   - Storage configuration
   - Console/serial configuration
+  - Filesystem/shared folder configuration
+  - Enhanced device validation (helpful error messages for sound, video, input, watchdog)
   - Feature validation
   - Error handling
 

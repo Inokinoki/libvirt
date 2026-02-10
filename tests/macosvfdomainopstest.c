@@ -34,7 +34,7 @@ static macosvfConn driver;
 
 /* Test domain XML parsing with various configurations */
 static int
-testDomainParseVariousConfigs(const void *data)
+testDomainParseVariousConfigs(const void *data G_GNUC_UNUSED)
 {
     const char *configs[] = {
         "minimal",
@@ -78,10 +78,6 @@ testDomainParseVariousConfigs(const void *data)
             fprintf(stderr, "Config %s: Expected HVM OS type\n", configs[i]);
             return -1;
         }
-
-        g_free(xml);
-        virDomainDefFree(def);
-        def = NULL;
     }
 
     return 0;
@@ -89,7 +85,7 @@ testDomainParseVariousConfigs(const void *data)
 
 /* Test domain metadata preservation */
 static int
-testDomainMetadataPreservation(const void *data)
+testDomainMetadataPreservation(const void *data G_GNUC_UNUSED)
 {
     g_autofree char *xml_in = NULL;
     g_autofree char *xml_out = NULL;
@@ -132,7 +128,7 @@ testDomainMetadataPreservation(const void *data)
 
 /* Test vCPU configuration validation */
 static int
-testVcpuConfiguration(const void *data)
+testVcpuConfiguration(const void *data G_GNUC_UNUSED)
 {
     g_autofree char *xml = NULL;
     g_autoptr(virDomainDef) def = NULL;
@@ -152,12 +148,7 @@ testVcpuConfiguration(const void *data)
 
     /* Validate vCPU configuration */
     if (def->maxvcpus != 4) {
-        fprintf(stderr, "Expected 4 max vCPUs, got %u\n", def->maxvcpus);
-        return -1;
-    }
-
-    if (def->vcpus != NULL && def->nvcpus != 4) {
-        fprintf(stderr, "Expected 4 vCPU defs, got %zu\n", def->nvcpus);
+        fprintf(stderr, "Expected 4 max vCPUs, got %zu\n", def->maxvcpus);
         return -1;
     }
 
@@ -191,19 +182,14 @@ testBootConfiguration(const void *data G_GNUC_UNUSED)
     }
 
     /* Validate boot menu */
-    if (!def->os.bootmenu) {
-        fprintf(stderr, "Expected boot menu to be defined\n");
-        return -1;
-    }
-
-    if (def->os.bootmenu->enable != VIR_TRISTATE_BOOL_YES) {
+    if (def->os.bootmenu != VIR_TRISTATE_BOOL_YES) {
         fprintf(stderr, "Expected boot menu enabled\n");
         return -1;
     }
 
-    if (def->os.bootmenu->timeout != 3000) {
-        fprintf(stderr, "Expected boot menu timeout 3000, got %d\n",
-                def->os.bootmenu->timeout);
+    if (!def->os.bm_timeout_set || def->os.bm_timeout != 3000) {
+        fprintf(stderr, "Expected boot menu timeout 3000, got %u\n",
+                def->os.bm_timeout);
         return -1;
     }
 
@@ -251,10 +237,14 @@ testLifecycleConfiguration(const void *data G_GNUC_UNUSED)
 
 /* Test timer configuration */
 static int
-testTimerConfiguration(const void *data)
+testTimerConfiguration(const void *data G_GNUC_UNUSED)
 {
     g_autofree char *xml = NULL;
     g_autoptr(virDomainDef) def = NULL;
+    bool has_platform = false;
+    bool has_rtc = false;
+    bool has_armvtimer = false;
+    size_t i;
 
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
@@ -276,11 +266,7 @@ testTimerConfiguration(const void *data)
     }
 
     /* Check for required timers */
-    bool has_platform = false;
-    bool has_rtc = false;
-    bool has_armvtimer = false;
-
-    for (size_t i = 0; i < def->clock.ntimers; i++) {
+    for (i = 0; i < def->clock.ntimers; i++) {
         virDomainTimerDef *timer = def->clock.timers[i];
 
         if (timer->name == VIR_DOMAIN_TIMER_NAME_PLATFORM)
@@ -301,7 +287,7 @@ testTimerConfiguration(const void *data)
 
 /* Test NUMA configuration validation */
 static int
-testNUMAConfiguration(const void *data)
+testNUMAConfiguration(const void *data G_GNUC_UNUSED)
 {
     g_autofree char *xml = NULL;
     g_autoptr(virDomainDef) def = NULL;
@@ -325,9 +311,9 @@ testNUMAConfiguration(const void *data)
         return -1;
     }
 
-    if (def->numa->nCells != 2) {
+    if (virDomainNumaGetNodeCount(def->numa) != 2) {
         fprintf(stderr, "Expected 2 NUMA cells, got %zu\n",
-                def->numa->nCells);
+                virDomainNumaGetNodeCount(def->numa));
         return -1;
     }
 
@@ -342,7 +328,7 @@ testNUMAConfiguration(const void *data)
 
 /* Test advanced configuration parsing */
 static int
-testAdvancedConfiguration(const void *data)
+testAdvancedConfiguration(const void *data G_GNUC_UNUSED)
 {
     g_autofree char *xml = NULL;
     g_autoptr(virDomainDef) def = NULL;
@@ -377,8 +363,8 @@ testAdvancedConfiguration(const void *data)
     }
 
     /* Validate vCPU details */
-    if (def->vcpus && def->nvcpus != 4) {
-        fprintf(stderr, "Expected 4 vCPU defs, got %zu\n", def->nvcpus);
+    if (def->maxvcpus != 4) {
+        fprintf(stderr, "Expected 4 vCPUs, got %zu\n", def->maxvcpus);
         return -1;
     }
 

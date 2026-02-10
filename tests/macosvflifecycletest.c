@@ -151,15 +151,15 @@ testDomainParseNUMA(const void *data)
         return -1;
 
     /* Verify NUMA configuration */
-    if (def->numa == NULL || def->numa->nCells == 0) {
+    if (def->numa == NULL || virDomainNumaGetNodeCount(def->numa) == 0) {
         fprintf(stderr, "%s: NUMA cells should be defined\n", __FUNCTION__);
         return -1;
     }
 
     /* Verify NUMA cell count is reasonable */
-    if (def->numa->nCells > 2) {
+    if (virDomainNumaGetNodeCount(def->numa) > 2) {
         fprintf(stderr, "%s: NUMA cell count %zu exceeds reasonable limit\n",
-                __FUNCTION__, def->numa->nCells);
+                __FUNCTION__, virDomainNumaGetNodeCount(def->numa));
         return -1;
     }
 
