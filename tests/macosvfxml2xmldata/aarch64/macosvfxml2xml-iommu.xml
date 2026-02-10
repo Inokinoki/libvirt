@@ -13,7 +13,6 @@
   <cpu mode='host-model'/>
   <clock offset='utc'/>
   <devices>
-    <iommu model='virtio'/>
     <disk type='file' device='disk'>
       <source file='/var/lib/libvirt/images/disk.img'/>
       <target dev='vda' bus='virtio'/>

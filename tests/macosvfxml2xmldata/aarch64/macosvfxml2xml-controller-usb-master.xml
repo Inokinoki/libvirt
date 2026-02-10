@@ -12,9 +12,6 @@
   </features>
   <clock offset='utc'/>
   <devices>
-    <controller type='usb' index='0' model='nec-xhci'>
-      <master startport='0'/>
-    </controller>
     <disk type='file' device='disk'>
       <source file='/var/lib/libvirt/images/disk.img'/>
       <target dev='vda' bus='virtio'/>

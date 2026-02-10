@@ -13,7 +13,6 @@
   <clock offset='utc'/>
   <devices>
     <controller type='pci' index='0' model='pci-root'/>
-    <controller type='pci' index='1' model='pcie-root'/>
     <disk type='file' device='disk'>
       <source file='/var/lib/libvirt/images/disk.img'/>
       <target dev='vda' bus='virtio'/>
