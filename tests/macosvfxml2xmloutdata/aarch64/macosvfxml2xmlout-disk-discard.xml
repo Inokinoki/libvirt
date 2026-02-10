@@ -1,20 +1,35 @@
 <domain type='macosvf'>
-  <name>test-disk-discard</name>
-  <uuid>81d4e56c-1234-5678-9abc-def000000082</uuid>
-  <memory unit='KiB'>1048576</memory>
-  <currentMemory unit='KiB'>1048576</currentMemory>
+  <name>macosvf-test</name>
+  <uuid>12345678-1234-1234-1234-123456789012</uuid>
+  <memory unit='KiB'>2097152</memory>
+  <currentMemory unit='KiB'>2097152</currentMemory>
   <vcpu placement='static'>2</vcpu>
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>
-    <kernel>/boot/vmlinuz</kernel>
-    <initrd>/boot/initrd.img</initrd>
-    <cmdline>root=/dev/vda1 console=ttyAMA0</cmdline>
+    <kernel>/path/to/kernel</kernel>
+    <boot dev='hd'/>
   </os>
+  <features>
+    <acpi/>
+  </features>
+  <cpu mode='host-model'/>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
   <devices>
     <disk type='file' device='disk'>
-      <source file='/var/lib/libvirt/images/test.qcow2'/>
+      <driver name='qemu' type='raw'/>
+      <source file='/path/to/disk.qcow2'/>
       <target dev='vda' bus='virtio'/>
-      <driver name='qemu' type='qcow2' discard='unmap'/>
     </disk>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='isa' index='0'/>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
   </devices>
 </domain>

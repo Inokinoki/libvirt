@@ -6,7 +6,7 @@
   <vcpu placement='static'>2</vcpu>
   <smbios mode='sysinfo'>
     <bios>
-      <entry name='vendor' value 'Test Vendor'/>
+      <entry name='vendor' value='Test Vendor'/>
       <entry name='version' value='1.0'/>
     </bios>
     <system>

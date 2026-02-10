@@ -15,9 +15,7 @@
   <devices>
     <disk type='file' device='disk'>
       <driver name='qemu' type='raw'/>
-      <source file='/var/lib/libvirt/images/disk.img'>
-        <seclabel model='dac' relabel='yes'/>
-      </source>
+      <source file='/var/lib/libvirt/images/disk.img'/>
       <target dev='vda' bus='virtio'/>
     </disk>
     <console type='pty'>
