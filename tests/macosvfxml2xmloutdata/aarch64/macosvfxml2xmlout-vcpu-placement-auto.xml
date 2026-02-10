@@ -1,6 +1,6 @@
 <domain type='macosvf'>
-  <name>vcpu-placement-auto-vm</name>
-  <uuid>44445555-6666-7777-8888-999900001111</uuid>
+  <name>macosvf-test</name>
+  <uuid>12345678-1234-1234-1234-123456789012</uuid>
   <memory unit='KiB'>2097152</memory>
   <currentMemory unit='KiB'>2097152</currentMemory>
   <vcpu placement='auto'>2</vcpu>
@@ -9,19 +9,21 @@
   </numatune>
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>
-    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+    <kernel>/path/to/kernel</kernel>
     <boot dev='hd'/>
   </os>
   <features>
     <acpi/>
   </features>
+  <cpu mode='host-model'/>
   <clock offset='utc'/>
   <on_poweroff>destroy</on_poweroff>
   <on_reboot>restart</on_reboot>
   <on_crash>destroy</on_crash>
   <devices>
     <disk type='file' device='disk'>
-      <source file='/var/lib/libvirt/images/disk.img'/>
+      <driver name='qemu' type='raw'/>
+      <source file='/path/to/disk.qcow2'/>
       <target dev='vda' bus='virtio'/>
     </disk>
     <controller type='pci' index='0' model='pci-root'/>

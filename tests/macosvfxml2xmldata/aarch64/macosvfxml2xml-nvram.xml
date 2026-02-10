@@ -6,7 +6,6 @@
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>
     <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
-    <nvram>/var/lib/libvirt/nvram/guest_VARS.fd:/usr/share/edk2/aarch64-vars.fd</nvram>
   </os>
   <features>
     <acpi/>

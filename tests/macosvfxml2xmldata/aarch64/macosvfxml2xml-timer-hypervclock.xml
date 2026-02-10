@@ -4,9 +4,7 @@
   <memory unit='KiB'>1048576</memory>
   <currentMemory unit='KiB'>1048576</currentMemory>
   <vcpu placement='static'>2</vcpu>
-  <clock offset='utc'>
-    <timer name='hypervclock' present='no'/>
-  </clock>
+  <clock offset='utc'/>
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>
     <kernel>/boot/vmlinuz</kernel>
