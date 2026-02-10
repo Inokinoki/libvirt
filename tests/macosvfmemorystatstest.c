@@ -52,9 +52,9 @@ testMemoryStats(const void *data G_GNUC_UNUSED)
     g_autofree char *xml = NULL;
     g_autoptr(virDomainDef) def = NULL;
     macosvfVMObject *vm = NULL;
-    virDomainMemoryStat stats[VIR_DOMAIN_MEMORY_STAT_NR];
     int ret = -1;
     int nstats = 0;
+    virDomainMemoryStatStruct stats[VIR_DOMAIN_MEMORY_STAT_NR];
 
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
@@ -147,8 +147,8 @@ testMemoryStatsSizes(const void *data G_GNUC_UNUSED)
 
     g_autoptr(virDomainDef) def = NULL;
     macosvfVMObject *vm = NULL;
-    virDomainMemoryStat stats[VIR_DOMAIN_MEMORY_STAT_NR];
     int ret = -1;
+    virDomainMemoryStatStruct stats[VIR_DOMAIN_MEMORY_STAT_NR];
 
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
@@ -223,8 +223,8 @@ testMemoryStatsStateTransitions(const void *data G_GNUC_UNUSED)
 {
     g_autoptr(virDomainDef) def = NULL;
     macosvfVMObject *vm = NULL;
-    virDomainMemoryStat stats[VIR_DOMAIN_MEMORY_STAT_NR];
     int ret = -1;
+    virDomainMemoryStatStruct stats[VIR_DOMAIN_MEMORY_STAT_NR];
 
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
@@ -276,8 +276,8 @@ testMemoryStatsTags(const void *data G_GNUC_UNUSED)
 {
     g_autoptr(virDomainDef) def = NULL;
     macosvfVMObject *vm = NULL;
-    virDomainMemoryStat stats[VIR_DOMAIN_MEMORY_STAT_NR];
     int ret = -1;
+    virDomainMemoryStatStruct stats[VIR_DOMAIN_MEMORY_STAT_NR];
 
     virTestSetHostArch(VIR_ARCH_AARCH64);
 
@@ -364,8 +364,8 @@ testMemoryStatsEdgeCases(const void *data G_GNUC_UNUSED)
 {
     g_autoptr(virDomainDef) def = NULL;
     macosvfVMObject *vm = NULL;
-    virDomainMemoryStat stats[VIR_DOMAIN_MEMORY_STAT_NR];
     int ret = -1;
+    virDomainMemoryStatStruct stats[VIR_DOMAIN_MEMORY_STAT_NR];
 
     virTestSetHostArch(VIR_ARCH_AARCH64);
 

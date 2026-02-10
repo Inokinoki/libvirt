@@ -28,6 +28,7 @@
 # include "macosvf/macosvf_conf.h"
 # include "macosvf/macosvf_domain.h"
 # include "conf/domain_conf.h"
+# include "conf/numa_conf.h"
 
 # define VIR_FROM_THIS VIR_FROM_NONE
 
@@ -117,14 +118,14 @@ testDomainParseLifecycle(const void *data)
         return -1;
 
     /* Verify lifecycle actions */
-    if (def->onPoweroff != VIR_DOMAIN_LIFECYCLE_DESTROY &&
-        def->onPoweroff != VIR_DOMAIN_LIFECYCLE_RESTART) {
+    if (def->onPoweroff != VIR_DOMAIN_LIFECYCLE_ACTION_DESTROY &&
+        def->onPoweroff != VIR_DOMAIN_LIFECYCLE_ACTION_RESTART) {
         fprintf(stderr, "%s: Invalid on_poweroff action\n", __FUNCTION__);
         return -1;
     }
 
-    if (def->onReboot != VIR_DOMAIN_LIFECYCLE_RESTART &&
-        def->onReboot != VIR_DOMAIN_LIFECYCLE_DESTROY) {
+    if (def->onReboot != VIR_DOMAIN_LIFECYCLE_ACTION_RESTART &&
+        def->onReboot != VIR_DOMAIN_LIFECYCLE_ACTION_DESTROY) {
         fprintf(stderr, "%s: Invalid on_reboot action\n", __FUNCTION__);
         return -1;
     }
@@ -242,6 +243,7 @@ static int
 mymain(void)
 {
     int ret = 0;
+    struct testInfo info;
 
     /* macOSVF only supports ARM64/Apple Silicon */
     virTestSetHostArch(VIR_ARCH_AARCH64);
@@ -253,8 +255,6 @@ mymain(void)
         virObjectUnref(driver.caps);
         return EXIT_FAILURE;
     }
-
-    struct testInfo info;
 
     /* Test metadata handling */
     info.name = "domain-config";

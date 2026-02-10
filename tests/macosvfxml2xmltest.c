@@ -279,16 +279,16 @@ mymain(void)
     DO_TEST_FAILURE("invalid-net-model-virtio-nonvirtio");
     DO_TEST_FAILURE("invalid-net-type-user");
     DO_TEST_FAILURE("invalid-graphics-device");
-    DO_TEST_FAILURE("invalid-sound-device");
     DO_TEST_FAILURE("invalid-hostdev-passthrough");
     DO_TEST_FAILURE("invalid-usb-device");
     DO_TEST_FAILURE("invalid-watchdog-device");
     DO_TEST_FAILURE("invalid-memballoon-device");
 
-    /* Graphics and input device tests - now supported */
+    /* Graphics, input, and audio device tests - now supported */
     DO_TEST_DIFFERENT("input-keyboard");
     DO_TEST_DIFFERENT("graphics-basic");
     DO_TEST_DIFFERENT("graphics-vga");
+    DO_TEST_DIFFERENT("sound-virtio");
 
     /* Domain configuration validation tests */
     DO_TEST_FAILURE("invalid-os-type-xen");

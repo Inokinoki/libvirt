@@ -166,7 +166,7 @@ testVcpuConfiguration(const void *data)
 
 /* Test boot configuration validation */
 static int
-testBootConfiguration(const void *data)
+testBootConfiguration(const void *data G_GNUC_UNUSED)
 {
     g_autofree char *xml = NULL;
     g_autoptr(virDomainDef) def = NULL;
@@ -212,7 +212,7 @@ testBootConfiguration(const void *data)
 
 /* Test lifecycle configuration */
 static int
-testLifecycleConfiguration(const void *data)
+testLifecycleConfiguration(const void *data G_GNUC_UNUSED)
 {
     g_autofree char *xml = NULL;
     g_autoptr(virDomainDef) def = NULL;
@@ -231,17 +231,17 @@ testLifecycleConfiguration(const void *data)
     }
 
     /* Validate lifecycle actions */
-    if (def->onPoweroff != VIR_DOMAIN_LIFECYCLE_DESTROY) {
+    if (def->onPoweroff != VIR_DOMAIN_LIFECYCLE_ACTION_DESTROY) {
         fprintf(stderr, "Expected on_poweroff destroy\n");
         return -1;
     }
 
-    if (def->onReboot != VIR_DOMAIN_LIFECYCLE_RESTART) {
+    if (def->onReboot != VIR_DOMAIN_LIFECYCLE_ACTION_RESTART) {
         fprintf(stderr, "Expected on_reboot restart\n");
         return -1;
     }
 
-    if (def->onCrash != VIR_DOMAIN_LIFECYCLE_PRESERVE) {
+    if (def->onCrash != VIR_DOMAIN_LIFECYCLE_ACTION_PRESERVE) {
         fprintf(stderr, "Expected on_crash preserve\n");
         return -1;
     }
@@ -281,7 +281,7 @@ testTimerConfiguration(const void *data)
     bool has_armvtimer = false;
 
     for (size_t i = 0; i < def->clock.ntimers; i++) {
-        virDomainTimerDefPtr timer = &def->clock.timers[i];
+        virDomainTimerDef *timer = def->clock.timers[i];
 
         if (timer->name == VIR_DOMAIN_TIMER_NAME_PLATFORM)
             has_platform = true;
