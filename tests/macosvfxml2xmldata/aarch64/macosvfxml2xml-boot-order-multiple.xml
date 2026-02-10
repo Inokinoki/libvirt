@@ -23,6 +23,7 @@
       <boot order='2'/>
     </disk>
     <interface type='network'>
+      <mac address='52:54:00:4a:8b:3c'/>
       <source network='default'/>
       <boot order='3'/>
     </interface>
