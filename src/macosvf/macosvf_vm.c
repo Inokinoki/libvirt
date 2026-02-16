@@ -123,6 +123,12 @@ macosvfVMCreate(virDomainDef *def,
     @autoreleasepool {
         config = [[VZVirtualMachineConfiguration alloc] init];
 
+        /* Assign config to vm BEFORE calling setup functions so they
+         * can configure devices on it. In Objective-C, property assignments
+         * on nil are silent no-ops, so without this the device setup
+         * would silently discard all configuration. */
+        vm->config = config;
+
         /* Set CPU count */
         config.CPUCount = virDomainDefGetVcpus(def);
 
@@ -158,6 +164,7 @@ macosvfVMCreate(virDomainDef *def,
                     virReportError(VIR_ERR_INTERNAL_ERROR,
                                    _("Kernel file not found: %1$s"),
                                    def->os.kernel);
+                    vm->config = nil;
                     VIR_FREE(vm);
                     return -1;
                 }
@@ -166,36 +173,42 @@ macosvfVMCreate(virDomainDef *def,
 
         /* Set up storage devices */
         if (macosvfVMSetupStorage(def, vm) < 0) {
+            vm->config = nil;
             VIR_FREE(vm);
             return -1;
         }
 
         /* Set up network devices */
         if (macosvfVMSetupNetwork(def, vm) < 0) {
+            vm->config = nil;
             VIR_FREE(vm);
             return -1;
         }
 
         /* Set up serial console */
         if (macosvfVMSetupSerial(def, vm) < 0) {
+            vm->config = nil;
             VIR_FREE(vm);
             return -1;
         }
 
         /* Set up graphics */
         if (macosvfVMSetupGraphics(def, vm) < 0) {
+            vm->config = nil;
             VIR_FREE(vm);
             return -1;
         }
 
         /* Set up input devices */
         if (macosvfVMSetupInput(def, vm) < 0) {
+            vm->config = nil;
             VIR_FREE(vm);
             return -1;
         }
 
         /* Set up audio */
         if (macosvfVMSetupAudio(def, vm) < 0) {
+            vm->config = nil;
             VIR_FREE(vm);
             return -1;
         }
@@ -205,12 +218,12 @@ macosvfVMCreate(virDomainDef *def,
             virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
                            _("Invalid VM configuration: %1$s"),
                            [[error localizedDescription] UTF8String]);
+            vm->config = nil;
             VIR_FREE(vm);
             return -1;
         }
 
-        vm->config = config;
-        vm->hasValidConfiguration = YES;
+        vm->hasValidConfiguration = true;
 
         /* Create VM instance */
         vm->vm = [[VZVirtualMachine alloc]
@@ -732,9 +745,15 @@ macosvfVMSetupSerial(virDomainDef *def,
                 grantpt(ptmfd);
                 unlockpt(ptmfd);
 
-                readHandle = [[NSFileHandle alloc] initWithFileDescriptor:ptmfd];
-                writeHandle = [[NSFileHandle alloc] initWithFileDescriptor:dup(ptmfd)];
-                close(ptmfd);
+                /* Use closeOnDealloc:YES so the NSFileHandle owns the fd.
+                 * We must NOT close ptmfd/dup(ptmfd) ourselves, as that
+                 * would invalidate the file handles. */
+                readHandle = [[NSFileHandle alloc]
+                    initWithFileDescriptor:ptmfd
+                           closeOnDealloc:YES];
+                writeHandle = [[NSFileHandle alloc]
+                    initWithFileDescriptor:dup(ptmfd)
+                           closeOnDealloc:YES];
 
                 attachment = [[VZFileHandleSerialPortAttachment alloc]
                     initWithFileHandleForReading:readHandle
@@ -763,9 +782,15 @@ macosvfVMSetupSerial(virDomainDef *def,
                     return -1;
                 }
 
-                readHandle = [[NSFileHandle alloc] initWithFileDescriptor:fd];
-                writeHandle = [[NSFileHandle alloc] initWithFileDescriptor:dup(fd)];
-                close(fd);
+                /* Use closeOnDealloc:YES so the NSFileHandle owns the fd.
+                 * We must NOT close fd/dup(fd) ourselves, as that would
+                 * invalidate the file handles. */
+                readHandle = [[NSFileHandle alloc]
+                    initWithFileDescriptor:fd
+                           closeOnDealloc:YES];
+                writeHandle = [[NSFileHandle alloc]
+                    initWithFileDescriptor:dup(fd)
+                           closeOnDealloc:YES];
 
                 attachment = [[VZFileHandleSerialPortAttachment alloc]
                     initWithFileHandleForReading:readHandle
