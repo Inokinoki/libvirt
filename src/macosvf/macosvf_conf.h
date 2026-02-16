@@ -52,6 +52,7 @@ struct _macosvfConn {
     char *stateDir;
     char *configDir;
     char *logDir;
+    char *snapshotDir;
     char *pidFile;
 
     bool privileged;

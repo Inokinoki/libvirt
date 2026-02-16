@@ -46,12 +46,19 @@ macosvfDomObjFromSnapshot(virDomainSnapshotPtr snapshot)
     return macosvfDomObjFromDomain(snapshot->domain);
 }
 
+/* Access the global driver instance */
+extern struct _macosvfConn *macosvf_driver;
+
 /* Generate snapshot directory path */
 static char *
 macosvfSnapshotDir(virDomainObj *vm)
 {
-    macosvfConn *driver = vm->conn->privateData;
-    return g_strdup_printf("%s/%s", driver->snapshotDir, vm->def->name);
+    if (!macosvf_driver || !macosvf_driver->snapshotDir) {
+        virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                       _("macosvf driver is not initialized"));
+        return NULL;
+    }
+    return g_strdup_printf("%s/%s", macosvf_driver->snapshotDir, vm->def->name);
 }
 
 /* Generate snapshot file path */
@@ -60,6 +67,8 @@ macosvfSnapshotFile(virDomainObj *vm,
                    const char *name)
 {
     g_autofree char *snapDir = macosvfSnapshotDir(vm);
+    if (!snapDir)
+        return NULL;
     return g_strdup_printf("%s/%s.xml", snapDir, name);
 }
 
@@ -68,6 +77,9 @@ static int
 macosvfEnsureSnapshotDir(virDomainObj *vm)
 {
     g_autofree char *snapDir = macosvfSnapshotDir(vm);
+
+    if (!snapDir)
+        return -1;
 
     if (!virFileExists(snapDir)) {
         if (g_mkdir_with_parents(snapDir, 0700) < 0) {

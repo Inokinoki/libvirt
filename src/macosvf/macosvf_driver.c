@@ -1997,6 +1997,7 @@ macosvfStateInitialize(bool privileged,
 
     driver->configDir = configdir;
     driver->stateDir = rundir;
+    driver->snapshotDir = g_strdup_printf("%s/snapshot", configdir);
     driver->privileged = privileged;
 
     /* Load configuration file */
@@ -2068,6 +2069,7 @@ error:
     virObjectUnref(driver->config);
     VIR_FREE(configdir);
     VIR_FREE(rundir);
+    VIR_FREE(driver->snapshotDir);
     virMutexDestroy(&driver->lock);
     VIR_FREE(driver);
     return VIR_DRV_STATE_INIT_ERROR;
@@ -2089,6 +2091,7 @@ macosvfStateCleanup(void)
 
     VIR_FREE(driver->configDir);
     VIR_FREE(driver->stateDir);
+    VIR_FREE(driver->snapshotDir);
     virMutexDestroy(&driver->lock);
     VIR_FREE(driver);
 
