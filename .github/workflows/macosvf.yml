@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - macos-virtualization-frameworks
+      - 'cursor/**'
     paths:
       - 'src/macosvf/**'
       - 'tests/macosvf*'
