@@ -63,9 +63,19 @@ jobs:
         run: |
           cd builddir
           meson test \
-            --suite macosvf \
             --no-rebuild \
             --print-errorlogs \
+            macosvfxml2xmltest \
+            macosvfcapabilitiestest \
+            macosvfsuspendtest \
+            macosvfedgetest \
+            macosvflifecycletest \
+            macosvfdomainopstest \
+            macosvfschedulertest \
+            macosvfblockiotunetest \
+            macosvfmemoryparamstest \
+            macosvfnumaparamstest \
+            macosvfinterfaceparamstest \
             || true
         continue-on-error: true
 
