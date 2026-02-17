@@ -27,8 +27,8 @@
 typedef struct _macosvfDomainObjPrivate macosvfDomainObjPrivate;
 
 struct _macosvfDomainObjPrivate {
-    /* Pointer to the virtualization.framework VM object */
-    void *vm;  /* Opaque pointer to VZVirtualMachine */
+  /* Pointer to the virtualization.framework VM object */
+  void *vm; /* Opaque pointer to VZVirtualMachine */
 };
 
 /* Private data callbacks */
@@ -38,4 +38,5 @@ extern virDomainXMLPrivateDataCallbacks macosvfDriverPrivateDataCallbacks;
 extern virDomainDefParserConfig virMacOSVFDriverDomainDefParserConfig;
 
 virDomainObj *macosvfDomObjFromDomain(virDomainPtr domain);
+virDomainXMLOption *virMacOSVFDriverDomainXMLConfInit(void);
 void macosvfDomainObjPrivateFree(void *obj);

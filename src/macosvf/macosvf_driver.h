@@ -1,5 +1,6 @@
 /*
- * macosvf_driver.h: core driver methods for managing macOS Virtualization.Framework guests
+ * macosvf_driver.h: core driver methods for managing macOS
+ * Virtualization.Framework guests
  *
  * Copyright (C) 2025
  *
@@ -23,3 +24,11 @@
 #include "internal.h"
 
 int macosvfRegister(void);
+
+/* Test helpers */
+int macosvfDomainBlockStatsFromObj(virDomainObj *vm, const char *path,
+                                   virDomainBlockStatsPtr stats);
+int macosvfDomainInterfaceStatsFromObj(virDomainObj *vm, const char *path,
+                                       virDomainInterfaceStatsPtr stats);
+int macosvfDomainGetControlInfoFromObj(virDomainObj *vm,
+                                       virDomainControlInfoPtr info);

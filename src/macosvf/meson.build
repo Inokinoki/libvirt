@@ -63,6 +63,7 @@ if conf.has('WITH_MACOSVF')
     ],
     'link_args': [
       libvirt_no_undefined,
+      '-framework', 'Virtualization',
     ],
   }
 
