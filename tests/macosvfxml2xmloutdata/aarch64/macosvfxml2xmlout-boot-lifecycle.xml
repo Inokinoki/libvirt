@@ -27,12 +27,10 @@
   <on_crash>preserve</on_crash>
   <on_lockfailure>ignore</on_lockfailure>
   <devices>
-    <emulator>/usr/bin/qemu-system-aarch64</emulator>
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2'/>
       <source file='/path/to/disk.qcow2'/>
       <target dev='vda' bus='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
     </disk>
     <disk type='file' device='cdrom'>
       <driver name='qemu' type='raw'/>
@@ -41,21 +39,18 @@
       <readonly/>
       <address type='drive' controller='0' bus='0' target='0' unit='0'/>
     </disk>
-    <controller type='scsi' index='0'/>
     <controller type='pci' index='0' model='pci-root'/>
     <controller type='isa' index='0'/>
+    <controller type='scsi' index='0'/>
     <interface type='user'>
       <mac address='52:54:00:ab:cd:ef'/>
       <model type='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x0'/>
     </interface>
     <serial type='pty'>
       <target port='0'/>
-      <alias name='serial0'/>
     </serial>
     <console type='pty'>
       <target type='serial' port='0'/>
-      <alias name='console0'/>
     </console>
   </devices>
 </domain>

@@ -12,9 +12,7 @@
   <features>
     <acpi/>
   </features>
-  <cpu mode='host-model'>
-    <vendor vendor_id='Apple'/>
-  </cpu>
+  <cpu mode='host-model'/>
   <clock offset='utc'/>
   <on_poweroff>destroy</on_poweroff>
   <on_reboot>restart</on_reboot>

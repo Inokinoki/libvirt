@@ -7,6 +7,7 @@
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>
     <kernel>/path/to/kernel</kernel>
+    <boot dev='hd'/>
   </os>
   <features>
     <acpi/>
@@ -24,6 +25,12 @@
     </disk>
     <controller type='usb' index='0'/>
     <controller type='pci' index='0' model='pci-root'/>
-    <console type='pty'/>
+    <controller type='isa' index='0'/>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
   </devices>
 </domain>

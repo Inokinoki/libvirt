@@ -8,6 +8,7 @@
     <type arch='aarch64' machine='macosvf'>hvm</type>
     <kernel>/path/to/kernel</kernel>
     <cmdline>console=ttyAMA0</cmdline>
+    <boot dev='hd'/>
   </os>
   <features>
     <acpi/>
@@ -22,23 +23,19 @@
   <on_reboot>restart</on_reboot>
   <on_crash>destroy</on_crash>
   <devices>
-    <emulator>/usr/bin/qemu-system-aarch64</emulator>
     <disk type='file' device='disk'>
       <driver name='qemu' type='raw'/>
       <source file='/path/to/disk.raw'/>
       <target dev='vda' bus='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
     </disk>
     <controller type='pci' index='0' model='pci-root'/>
     <controller type='isa' index='0'/>
     <interface type='user'>
       <mac address='52:54:00:33:33:33'/>
       <model type='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x0'/>
     </interface>
     <serial type='pty'>
       <target port='0'/>
-      <alias name='serial0'/>
     </serial>
     <serial type='file'>
       <source path='/var/log/libvirt/serial0.log'/>
@@ -52,13 +49,12 @@
       <target port='3'/>
     </serial>
     <serial type='tcp'>
-      <source mode='bind' host='127.0.0.1' service='9999' protocol='raw'/>
+      <source mode='bind' host='127.0.0.1' service='9999'/>
       <protocol type='raw'/>
       <target port='4'/>
     </serial>
     <console type='pty'>
       <target type='serial' port='0'/>
-      <alias name='console0'/>
     </console>
   </devices>
 </domain>

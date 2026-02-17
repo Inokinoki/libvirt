@@ -9,13 +9,14 @@
     <kernel>/path/to/kernel-stats</kernel>
     <initrd>/path/to/initrd-stats</initrd>
     <cmdline>console=ttyAMA0 root=/dev/vda2</cmdline>
+    <boot dev='hd'/>
   </os>
   <features>
     <acpi/>
     <apic/>
   </features>
   <cpu mode='host-model' check='none'>
-    <topology sockets='1' cores='2' threads='2'/>
+    <topology sockets='1' dies='1' clusters='1' cores='2' threads='2'/>
   </cpu>
   <clock offset='utc'>
     <timer name='platform' tickpolicy='delay'/>
@@ -26,7 +27,6 @@
   <on_reboot>restart</on_reboot>
   <on_crash>preserve</on_crash>
   <devices>
-    <emulator>/usr/bin/qemu-system-aarch64</emulator>
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2' io='threads' discard='unmap'/>
       <source file='/path/to/stats-disk.qcow2'/>
@@ -45,11 +45,9 @@
     <interface type='user'>
       <mac address='52:54:00:fe:dc:ba'/>
       <model type='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
     </interface>
     <serial type='pty'>
       <target port='0'/>
-      <alias name='serial0'/>
     </serial>
     <serial type='file'>
       <source path='/var/log/libvirt/serial.log'/>
@@ -57,7 +55,6 @@
     </serial>
     <console type='pty'>
       <target type='serial' port='0'/>
-      <alias name='console0'/>
     </console>
   </devices>
 </domain>

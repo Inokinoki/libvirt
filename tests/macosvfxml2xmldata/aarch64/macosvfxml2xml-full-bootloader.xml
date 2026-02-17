@@ -9,6 +9,7 @@
     <kernel>/path/to/kernel</kernel>
     <initrd>/path/to/initrd</initrd>
     <cmdline>console=ttyS0 root=/dev/vda1</cmdline>
+    <boot dev='hd'/>
   </os>
   <features>
     <acpi/>
@@ -24,6 +25,13 @@
       <source file='/path/to/disk.img'/>
       <target dev='vda' bus='virtio'/>
     </disk>
-    <console type='pty'/>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='isa' index='0'/>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
   </devices>
 </domain>

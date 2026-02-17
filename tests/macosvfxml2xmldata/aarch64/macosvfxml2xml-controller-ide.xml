@@ -25,6 +25,7 @@
     </disk>
     <controller type='pci' index='0' model='pci-root'/>
     <controller type='ide' index='0'/>
+    <controller type='isa' index='0'/>
     <serial type='pty'>
       <target port='0'/>
     </serial>

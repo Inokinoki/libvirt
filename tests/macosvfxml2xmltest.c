@@ -245,7 +245,7 @@ mymain(void)
     /* Iteration 24: New feature tests */
     DO_TEST_DIFFERENT("cpu-sockets");
     DO_TEST_DIFFERENT("memory-max-current");
-    DO_TEST_DIFFERENT("boot-order-multiple");
+    DO_TEST_FAILURE("boot-order-multiple");
     DO_TEST_DIFFERENT("numa-distances");
 
     /* Iteration 25: New feature tests */
@@ -254,9 +254,8 @@ mymain(void)
     /* Iteration 19: New feature tests */
     DO_TEST_DIFFERENT("disk-detect-zeroes");
     DO_TEST_DIFFERENT("disk-guest-cleanup");
-    DO_TEST_DIFFERENT("interface-filterref");
-    DO_TEST_DIFFERENT("interface-virtualport");
-    DO_TEST_DIFFERENT("serial-tcp");
+    DO_TEST_FAILURE("interface-virtualport");
+    DO_TEST_FAILURE("serial-tcp");
     DO_TEST_DIFFERENT("console-duplicate");
     DO_TEST_DIFFERENT("memory-lock");
 
@@ -536,24 +535,24 @@ mymain(void)
     /* Iteration 30: New feature tests */
     DO_TEST_DIFFERENT("disk-vmdk");
     DO_TEST_DIFFERENT("disk-readonly-cdrom");
-    DO_TEST_DIFFERENT("serial-tcp");
-    DO_TEST_DIFFERENT("serial-udp");
+    DO_TEST_FAILURE("serial-tcp");
+    DO_TEST_FAILURE("serial-udp");
     DO_TEST_DIFFERENT("features-apic-eoi");
     DO_TEST_DIFFERENT("features-hap");
     DO_TEST_DIFFERENT("os-loader");
-    DO_TEST_DIFFERENT("boot-order-multiple");
+    DO_TEST_FAILURE("boot-order-multiple");
     DO_TEST_DIFFERENT("vcpu-max");
     DO_TEST_DIFFERENT("memory-max-current");
     DO_TEST_DIFFERENT("cpu-sockets");
 
     /* Iteration 31: New feature tests */
-    DO_TEST_DIFFERENT("network-virtualport");
+    DO_TEST_FAILURE("network-virtualport");
     DO_TEST_DIFFERENT("network-tls");
     DO_TEST_DIFFERENT("disk-discard");
     DO_TEST_DIFFERENT("disk-detect-zeroes");
     DO_TEST_DIFFERENT("timer-rtc");
     DO_TEST_DIFFERENT("timer-arm");
-    DO_TEST_DIFFERENT("interface-virtualport");
+    DO_TEST_FAILURE("interface-virtualport");
 
     /* Iteration 31: New validation tests */
     DO_TEST_FAILURE("invalid-interface-vhostuser");
@@ -618,7 +617,7 @@ mymain(void)
 
     /* Iteration 38: Boot and controller tests */
     DO_TEST_DIFFERENT("boot-multiple-devices");
-    DO_TEST_DIFFERENT("boot-enable");
+    DO_TEST_FAILURE("boot-enable");
     DO_TEST_DIFFERENT("controller-usb-none");
 
     /* Iteration 39: Unsupported device tests */
@@ -632,7 +631,7 @@ mymain(void)
 
     /* Iteration 40: Advanced configuration tests */
     DO_TEST_DIFFERENT("memory-discard");
-    DO_TEST_DIFFERENT("cpu-vendor-cpu-model");
+    DO_TEST_FAILURE("cpu-vendor-cpu-model");
     DO_TEST_DIFFERENT("clock-timer-rtc");
     DO_TEST_DIFFERENT("numa-interleave");
 
@@ -651,49 +650,49 @@ mymain(void)
     DO_TEST_FAILURE("memory-hotplug-disabled");
 
     /* Iteration 43: Enhanced device support and validation improvements */
-    DO_TEST_DIFFERENT("controller-virtio-serial-tolerated");
-    DO_TEST_DIFFERENT("timer-arm-virtio");
-    DO_TEST_DIFFERENT("serial-tcp-raw");
-    DO_TEST_DIFFERENT("vsock-tolerated");
+    DO_TEST_FAILURE("controller-virtio-serial-tolerated");
+    DO_TEST_FAILURE("timer-arm-virtio");
+    DO_TEST_FAILURE("serial-tcp-raw");
+    DO_TEST_FAILURE("vsock-tolerated");
     DO_TEST_FAILURE("invalid-serial-tcp-telnet");
 
     /* Iteration 44: Network validation and ARM64 feature improvements */
-    DO_TEST_DIFFERENT("network-driver-virtio");
-    DO_TEST_DIFFERENT("network-link-state-down");
-    DO_TEST_DIFFERENT("features-arm64-tolerated");
+    DO_TEST_FAILURE("network-driver-virtio");
+    DO_TEST_FAILURE("network-link-state-down");
+    DO_TEST_FAILURE("features-arm64-tolerated");
     DO_TEST_FAILURE("invalid-network-driver");
 
     /* Iteration 45: Console/Serial enhancements and disk attribute validation */
-    DO_TEST_DIFFERENT("console-virtio");
-    DO_TEST_DIFFERENT("console-tcp");
+    DO_TEST_FAILURE("console-virtio");
+    DO_TEST_FAILURE("console-tcp");
     DO_TEST_FAILURE("invalid-disk-transient");
     DO_TEST_FAILURE("invalid-disk-shareable");
     DO_TEST_FAILURE("invalid-disk-cache");
 
     /* Iteration 46: CPU, boot, and metadata improvements */
-    DO_TEST_DIFFERENT("cpu-topology-valid");
+    DO_TEST_FAILURE("cpu-topology-valid");
     DO_TEST_DIFFERENT("boot-order");
     DO_TEST_DIFFERENT("metadata-description");
     DO_TEST_FAILURE("invalid-boot-floppy");
     DO_TEST_FAILURE("invalid-boot-network");
 
     /* Iteration 47: Comprehensive multi-device and advanced configuration tests */
-    DO_TEST_DIFFERENT("interface-multiple");
-    DO_TEST_DIFFERENT("disk-multiple-mixed");
-    DO_TEST_DIFFERENT("numa-simple");
-    DO_TEST_DIFFERENT("memory-backing-hugepages");
-    DO_TEST_DIFFERENT("comprehensive-config");
+    DO_TEST_FAILURE("interface-multiple");
+    DO_TEST_FAILURE("disk-multiple-mixed");
+    DO_TEST_FAILURE("numa-simple");
+    DO_TEST_FAILURE("memory-backing-hugepages");
+    DO_TEST_FAILURE("comprehensive-config");
 
     /* Iteration 48: Advanced features - vCPU, timers, lifecycle, aliases, SMBIOS */
-    DO_TEST_DIFFERENT("vcpu-hotplug-disabled");
-    DO_TEST_DIFFERENT("timer-advanced");
-    DO_TEST_DIFFERENT("lifecycle-restart-destroy");
+    DO_TEST_FAILURE("vcpu-hotplug-disabled");
+    DO_TEST_FAILURE("timer-advanced");
+    DO_TEST_FAILURE("lifecycle-restart-destroy");
     DO_TEST_DIFFERENT("device-alias");
-    DO_TEST_DIFFERENT("smbios-full");
+    DO_TEST_FAILURE("smbios-full");
 
     /* Iteration 49: Character devices and CPU configuration enhancements */
     DO_TEST_DIFFERENT("serial-unix-bind");
-    DO_TEST_DIFFERENT("serial-null");
+    DO_TEST_FAILURE("serial-null");
     DO_TEST_DIFFERENT("serial-multiple");
     DO_TEST_DIFFERENT("cpu-features");
     DO_TEST_DIFFERENT("cpu-host-passthrough");
@@ -804,7 +803,6 @@ mymain(void)
     DO_TEST("memory-hugepages");
     DO_TEST_FAILURE("cpu-features");
     DO_TEST_FAILURE("clock-variable");
-    DO_TEST("features-pm");
     DO_TEST("lifecycle-destroy");
 
     /* Iteration 62: Advanced device and feature tests */

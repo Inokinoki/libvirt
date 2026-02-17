@@ -10,10 +10,10 @@
   <currentMemory unit='KiB'>2097152</currentMemory>
   <vcpu placement='static'>4</vcpu>
   <vcpus>
-    <vcpu id='0' enabled='yes'/>
-    <vcpu id='1' enabled='yes'/>
-    <vcpu id='2' enabled='yes'/>
-    <vcpu id='3' enabled='yes'/>
+    <vcpu id='0' enabled='yes' hotpluggable='no'/>
+    <vcpu id='1' enabled='yes' hotpluggable='no'/>
+    <vcpu id='2' enabled='yes' hotpluggable='no'/>
+    <vcpu id='3' enabled='yes' hotpluggable='no'/>
   </vcpus>
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>
@@ -26,7 +26,7 @@
     <apic/>
   </features>
   <cpu mode='host-model' check='none'>
-    <topology sockets='1' cores='4' threads='1'/>
+    <topology sockets='1' dies='1' clusters='1' cores='4' threads='1'/>
   </cpu>
   <clock offset='utc'>
     <timer name='platform' tickpolicy='delay'/>
@@ -37,19 +37,16 @@
   <on_reboot>restart</on_reboot>
   <on_crash>restart</on_crash>
   <devices>
-    <emulator>/usr/bin/qemu-system-aarch64</emulator>
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2'/>
       <source file='/path/to/root.qcow2'/>
       <target dev='vda' bus='virtio'/>
       <boot order='1'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
     </disk>
     <disk type='file' device='disk'>
       <driver name='qemu' type='raw'/>
       <source file='/path/to/data.img'/>
       <target dev='vdb' bus='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
     </disk>
     <disk type='file' device='cdrom'>
       <driver name='qemu' type='raw'/>
@@ -59,24 +56,21 @@
       <boot order='2'/>
       <address type='drive' controller='0' bus='0' target='0' unit='0'/>
     </disk>
-    <controller type='scsi' index='0'/>
     <controller type='pci' index='0' model='pci-root'/>
     <controller type='isa' index='0'/>
+    <controller type='scsi' index='0'/>
     <interface type='bridge'>
       <mac address='52:54:00:12:34:ab'/>
       <source bridge='br0'/>
       <model type='virtio'/>
       <driver name='vhost'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x0'/>
     </interface>
     <interface type='user'>
       <mac address='52:54:00:cd:ef:01'/>
       <model type='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
     </interface>
     <serial type='pty'>
       <target port='0'/>
-      <alias name='serial0'/>
     </serial>
     <serial type='file'>
       <source path='/var/log/libvirt/domain-serial.log'/>
@@ -84,7 +78,6 @@
     </serial>
     <console type='pty'>
       <target type='serial' port='0'/>
-      <alias name='console0'/>
     </console>
   </devices>
 </domain>

@@ -22,7 +22,6 @@
   <on_reboot>restart</on_reboot>
   <on_crash>restart</on_crash>
   <devices>
-    <emulator>/usr/bin/qemu-system-aarch64</emulator>
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2' cache='writeback' io='threads' discard='unmap' detect_zeroes='unmap'/>
       <source file='/path/to/disk1.qcow2'/>
@@ -46,9 +45,9 @@
       <boot order='2'/>
       <address type='drive' controller='0' bus='0' target='0' unit='0'/>
     </disk>
-    <controller type='scsi' index='0'/>
     <controller type='pci' index='0' model='pci-root'/>
     <controller type='isa' index='0'/>
+    <controller type='scsi' index='0'/>
     <interface type='user'>
       <mac address='52:54:00:aa:bb:cc'/>
       <model type='virtio'/>
@@ -63,7 +62,6 @@
     </interface>
     <serial type='pty'>
       <target port='0'/>
-      <alias name='serial0'/>
     </serial>
     <serial type='file'>
       <source path='/var/log/libvirt/serial1.log'/>
@@ -71,7 +69,6 @@
     </serial>
     <console type='pty'>
       <target type='serial' port='0'/>
-      <alias name='console0'/>
     </console>
   </devices>
 </domain>

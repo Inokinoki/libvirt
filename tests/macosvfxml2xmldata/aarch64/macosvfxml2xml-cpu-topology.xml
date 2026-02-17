@@ -13,7 +13,7 @@
     <acpi/>
   </features>
   <cpu mode='host-model'>
-    <topology sockets='2' cores='2' threads='1'/>
+    <topology sockets='2' dies='1' clusters='1' cores='2' threads='1'/>
   </cpu>
   <clock offset='utc'/>
   <on_poweroff>destroy</on_poweroff>

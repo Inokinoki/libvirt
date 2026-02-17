@@ -20,7 +20,7 @@
     <apic/>
   </features>
   <cpu mode='host-model' check='none'>
-    <topology sockets='1' cores='2' threads='1'/>
+    <topology sockets='1' dies='1' clusters='1' cores='2' threads='1'/>
   </cpu>
   <clock offset='utc'>
     <timer name='platform' tickpolicy='delay'/>
@@ -31,13 +31,11 @@
   <on_reboot>restart</on_reboot>
   <on_crash>restart</on_crash>
   <devices>
-    <emulator>/usr/bin/qemu-system-aarch64</emulator>
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2' discard='unmap' detect_zeroes='unmap'/>
       <source file='/path/to/disk.qcow2'/>
       <target dev='vda' bus='virtio'/>
       <boot order='1'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
     </disk>
     <disk type='file' device='cdrom'>
       <driver name='qemu' type='raw'/>
@@ -47,9 +45,9 @@
       <boot order='2'/>
       <address type='drive' controller='0' bus='0' target='0' unit='0'/>
     </disk>
-    <controller type='scsi' index='0'/>
     <controller type='pci' index='0' model='pci-root'/>
     <controller type='isa' index='0'/>
+    <controller type='scsi' index='0'/>
     <interface type='bridge'>
       <mac address='52:54:00:12:34:56'/>
       <source bridge='virbr0'/>
@@ -59,11 +57,9 @@
     <interface type='user'>
       <mac address='52:54:00:78:9a:bc'/>
       <model type='virtio'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
     </interface>
     <serial type='pty'>
       <target port='0'/>
-      <alias name='serial0'/>
     </serial>
     <serial type='file'>
       <source path='/var/log/libvirt/domain-serial.log'/>
@@ -71,7 +67,6 @@
     </serial>
     <console type='pty'>
       <target type='serial' port='0'/>
-      <alias name='console0'/>
     </console>
   </devices>
 </domain>

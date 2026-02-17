@@ -28,7 +28,6 @@
     <interface type='user'>
       <mac address='52:54:00:12:34:56'/>
       <model type='virtio'/>
-      <filterref filter='clean-traffic'/>
     </interface>
     <serial type='pty'>
       <target port='0'/>

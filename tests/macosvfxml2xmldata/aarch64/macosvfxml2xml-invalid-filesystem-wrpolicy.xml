@@ -1,19 +1,30 @@
 <domain type='macosvf'>
   <name>invalid-filesystem-wrpolicy</name>
+  <uuid>93d2056d-c58c-4cc7-af2b-b673455c2432</uuid>
   <memory unit='KiB'>524288</memory>
+  <currentMemory unit='KiB'>524288</currentMemory>
   <vcpu placement='static'>1</vcpu>
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>
+    <boot dev='hd'/>
   </os>
   <features>
     <acpi/>
   </features>
   <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
   <devices>
-    <filesystem type='mount' accessmode='passthrough' wrpolicy='immediate'>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='isa' index='0'/>
+    <filesystem type='mount' accessmode='passthrough'>
       <source dir='/path/on/host'/>
       <target dir='/mount/tag'/>
     </filesystem>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
     <console type='pty'>
       <target type='serial' port='0'/>
     </console>

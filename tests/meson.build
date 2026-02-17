@@ -369,21 +369,25 @@ endif
 
 if conf.has('WITH_MACOSVF')
   tests += [
-    { 'name': 'macosvfxml2xmltest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
-    { 'name': 'macosvfcapabilitiestest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
-    { 'name': 'macosvfsuspendtest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
-    { 'name': 'macosvfedgetest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
-    { 'name': 'macosvflifecycletest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfxml2xmltest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvfcapabilitiestest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvfsuspendtest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvfedgetest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvflifecycletest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
     # Temporarily disabled due to API compatibility issues - need updates
-    # { 'name': 'macosvfstatstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
-    { 'name': 'macosvfdomainopstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfstatstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvfdomainopstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
     # Temporarily disabled due to API compatibility issues - need updates
-    # { 'name': 'macosvfmemorystatstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
-    { 'name': 'macosvfschedulertest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
-    { 'name': 'macosvfblockiotunetest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
-    { 'name': 'macosvfmemoryparamstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
-    { 'name': 'macosvfnumaparamstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
-    { 'name': 'macosvfinterfaceparamstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ] },
+    { 'name': 'macosvfmemorystatstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvfschedulertest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvfblockiotunetest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvfmemoryparamstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvfnumaparamstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvfinterfaceparamstest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvfsnapshottest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'test_ubuntu_vm', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvfadvancedtest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
+    { 'name': 'macosvfdevicetest', 'link_with': [ macosvf_driver_impl ], 'link_args': [ '-framework', 'Foundation', '-framework', 'Virtualization' ], 'suite': ['macosvf'] },
   ]
 endif
 
@@ -648,7 +652,7 @@ foreach data : tests
     env: tests_env,
     timeout: data.get('timeout', 30),
     depends: tests_deps + data.get('depends', []),
-    suite: 'bin'
+    suite: data.get('suite', 'bin')
   )
 endforeach
 

@@ -2,25 +2,35 @@
   <name>invalid-video-type-vga</name>
   <uuid>88889999-aaaa-bbbb-cccc-ddddeeeeffff</uuid>
   <memory unit='KiB'>1048576</memory>
+  <currentMemory unit='KiB'>1048576</currentMemory>
   <vcpu placement='static'>1</vcpu>
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>
     <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+    <boot dev='hd'/>
   </os>
   <features>
     <acpi/>
   </features>
   <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
   <devices>
     <disk type='file' device='disk'>
       <source file='/var/lib/libvirt/images/disk.img'/>
       <target dev='vda' bus='virtio'/>
     </disk>
-    <video>
-      <model type='vga' heads='1'/>
-    </video>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='isa' index='0'/>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
     <console type='pty'>
       <target type='serial' port='0'/>
     </console>
+    <video>
+      <model type='vga' vram='16384' heads='1' primary='yes'/>
+    </video>
   </devices>
 </domain>

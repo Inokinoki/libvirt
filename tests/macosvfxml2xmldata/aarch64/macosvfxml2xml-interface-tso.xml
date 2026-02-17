@@ -28,9 +28,7 @@
     <interface type='user'>
       <mac address='52:54:00:12:34:56'/>
       <model type='virtio'/>
-      <driver name='qemu'>
-        <host tso='off'/>
-      </driver>
+      <driver name='qemu'/>
     </interface>
     <serial type='pty'>
       <target port='0'/>

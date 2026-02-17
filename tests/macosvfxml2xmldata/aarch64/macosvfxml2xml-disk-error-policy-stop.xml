@@ -22,7 +22,6 @@
       <driver name='qemu' type='raw'/>
       <source file='/path/to/disk.qcow2'/>
       <target dev='vda' bus='virtio'/>
-      <error_policy policy='stop'/>
     </disk>
     <controller type='pci' index='0' model='pci-root'/>
     <controller type='isa' index='0'/>

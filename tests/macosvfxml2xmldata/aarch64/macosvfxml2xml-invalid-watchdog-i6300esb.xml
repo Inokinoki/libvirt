@@ -1,18 +1,29 @@
 <domain type='macosvf'>
   <name>invalid-watchdog-i6300esb</name>
+  <uuid>b36014f3-6a42-4cfd-ba0c-ad10adb9f6d8</uuid>
   <memory unit='KiB'>524288</memory>
+  <currentMemory unit='KiB'>524288</currentMemory>
   <vcpu placement='static'>1</vcpu>
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>
+    <boot dev='hd'/>
   </os>
   <features>
     <acpi/>
   </features>
   <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
   <devices>
-    <watchdog model='i6300esb' action='reset'/>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='isa' index='0'/>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
     <console type='pty'>
       <target type='serial' port='0'/>
     </console>
+    <watchdog model='i6300esb' action='reset'/>
   </devices>
 </domain>

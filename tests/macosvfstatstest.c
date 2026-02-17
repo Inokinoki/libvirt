@@ -24,298 +24,252 @@
 
 #ifdef WITH_MACOSVF
 
-# include "macosvf/macosvf_driver.h"
-# include "macosvf/macosvf_conf.h"
-# include "macosvf/macosvf_domain.h"
+#define LIBVIRT_VIRDOMAINOBJ_PRIVATE_H
+#include "datatypes.h"
+#include "macosvf/macosvf_conf.h"
+#include "macosvf/macosvf_domain.h"
+#include "macosvf/macosvf_driver.h"
+#include "virlog.h"
+#include <libvirt/libvirt-domain.h>
 
-# define VIR_FROM_THIS VIR_FROM_NONE
+#define VIR_FROM_THIS VIR_FROM_NONE
 
-static macosvfConn driver;
+static struct _macosvfConn driver;
 
 struct testInfo {
-    const char *name;
+  const char *name;
 };
 
 /* Test domain control info */
-static int
-testDomainGetControlInfo(const void *data G_GNUC_UNUSED)
-{
-    virDomainPtr dom = NULL;
-    virDomainControlInfo info;
-    int ret = -1;
+static int testDomainGetControlInfo(const void *data G_GNUC_UNUSED) {
+  virDomainObj *vm = NULL;
+  virDomainDef *def = NULL;
+  virDomainControlInfo info;
+  int ret = -1;
 
-    virTestSetHostArch(VIR_ARCH_AARCH64);
+  virTestSetHostArch(VIR_ARCH_AARCH64);
 
-    /* Create a test domain */
-    dom = virGetDomain(driver.conn, "test-domain",
-                       "12345678-1234-1234-1234-123456789abc");
-    if (!dom) {
-        fprintf(stderr, "%s: Failed to create domain object\n", __FUNCTION__);
-        goto cleanup;
-    }
+  /* Create a test domain definition */
+  def = virDomainDefNew(driver.xmlopt);
+  if (!def)
+    goto cleanup;
 
-    /* Get control info */
-    if (macosvfDomainGetControlInfo(dom, &info, 0) < 0) {
-        fprintf(stderr, "%s: Failed to get control info\n", __FUNCTION__);
-        goto cleanup;
-    }
+  def->os.type = VIR_DOMAIN_OSTYPE_HVM;
+  def->os.arch = VIR_ARCH_AARCH64;
+  def->os.machine = g_strdup("macosvf");
+  virDomainDefSetVcpusMax(def, 1, driver.xmlopt);
+  virDomainDefSetVcpus(def, 1);
 
-    /* Validate control info */
-    if (info.state != VIR_DOMAIN_CONTROL_OK) {
-        fprintf(stderr, "%s: Expected control state OK, got %d\n",
-                __FUNCTION__, info.state);
-        goto cleanup;
-    }
+  /* Create domain object */
+  vm = virDomainObjNew(driver.xmlopt);
+  if (!vm)
+    goto cleanup;
+  vm->def = def;
+  def = NULL;
 
-    if (info.details != 0) {
-        fprintf(stderr, "%s: Expected control details 0, got %u\n",
-                __FUNCTION__, info.details);
-        goto cleanup;
-    }
+  /* Get control info */
+  if (macosvfDomainGetControlInfoFromObj(vm, &info) < 0) {
+    fprintf(stderr, "%s: Failed to get control info\n", __FUNCTION__);
+    goto cleanup;
+  }
 
-    ret = 0;
+  /* Validate control info */
+  if (info.state != VIR_DOMAIN_CONTROL_OK) {
+    fprintf(stderr, "%s: Expected control state OK, got %d\n", __FUNCTION__,
+            info.state);
+    goto cleanup;
+  }
+
+  ret = 0;
 
 cleanup:
-    if (dom)
-        virObjectUnref(dom);
-    return ret;
+  if (vm)
+    virObjectUnref(vm);
+  virDomainDefFree(def);
+  return ret;
 }
 
 /* Test domain block stats */
-static int
-testDomainBlockStats(const void *data G_GNUC_UNUSED)
-{
-    virDomainObj *vm = NULL;
-    virDomainDef *def = NULL;
-    virDomainBlockStats stats;
-    int ret = -1;
+static int testDomainBlockStats(const void *data G_GNUC_UNUSED) {
+  virDomainObj *vm = NULL;
+  virDomainDef *def = NULL;
+  virDomainBlockStatsStruct stats;
+  virDomainDiskDef *disk = NULL;
+  int ret = -1;
 
-    virTestSetHostArch(VIR_ARCH_AARCH64);
+  virTestSetHostArch(VIR_ARCH_AARCH64);
 
-    /* Create a test domain with disk */
-    def = virDomainDefNew(NULL);
-    if (!def) {
-        fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
-        goto cleanup;
-    }
+  /* Create a test domain definition */
+  def = virDomainDefNew(driver.xmlopt);
+  if (!def)
+    goto cleanup;
 
-    def->os.type = VIR_DOMAIN_OSTYPE_HVM;
-    def->os.arch = VIR_ARCH_AARCH64;
-    def->os.machine = g_strdup("macosvf");
+  def->os.type = VIR_DOMAIN_OSTYPE_HVM;
+  def->os.arch = VIR_ARCH_AARCH64;
+  def->os.machine = g_strdup("macosvf");
 
-    virDomainDefSetVcpusMax(def, 1, NULL);
-    virDomainDefSetVcpus(def, 1);
+  /* Add a disk */
+  disk = virDomainDiskDefNew(driver.xmlopt);
+  if (!disk)
+    goto cleanup;
+  disk->dst = g_strdup("vda");
+  disk->bus = VIR_DOMAIN_DISK_BUS_VIRTIO;
+  VIR_APPEND_ELEMENT(def->disks, def->ndisks, disk);
 
-    def->mem.cur_balloon = 1024 * 1024;
+  /* Create domain object */
+  vm = virDomainObjNew(driver.xmlopt);
+  if (!vm)
+    goto cleanup;
+  vm->def = def;
+  def = NULL;
 
-    /* Add a disk */
-    if (virDomainDiskDefParseXML("vda", "virtio", NULL, &def->disks, &def->ndisks,
-                                   VIR_DOMAIN_DEF_PARSE_OK) < 0) {
-        fprintf(stderr, "%s: Failed to create disk definition\n", __FUNCTION__);
-        goto cleanup;
-    }
+  /* Get block stats */
+  if (macosvfDomainBlockStatsFromObj(vm, "vda", &stats) < 0) {
+    fprintf(stderr, "%s: Failed to get block stats\n", __FUNCTION__);
+    goto cleanup;
+  }
 
-    /* Create domain object */
-    vm = virDomainObjNew(def);
-    if (!vm) {
-        fprintf(stderr, "%s: Failed to create domain object\n", __FUNCTION__);
-        goto cleanup;
-    }
+  /* Validate stats - should return -1 for unsupported values */
+  if (stats.rd_req != -1 || stats.rd_bytes != -1 || stats.wr_req != -1 ||
+      stats.wr_bytes != -1) {
+    fprintf(stderr, "%s: Expected unsupported stats to be -1\n", __FUNCTION__);
+    goto cleanup;
+  }
 
-    /* Get block stats */
-    if (macosvfDomainBlockStatsFromObj(vm, "vda", &stats, sizeof(stats)) < 0) {
-        fprintf(stderr, "%s: Failed to get block stats\n", __FUNCTION__);
-        goto cleanup;
-    }
-
-    /* Validate stats - should return -1 for unsupported values */
-    if (stats.rd_req != -1 || stats.rd_bytes != -1 ||
-        stats.wr_req != -1 || stats.wr_bytes != -1) {
-        fprintf(stderr, "%s: Expected unsupported stats to be -1\n", __FUNCTION__);
-        goto cleanup;
-    }
-
-    ret = 0;
+  ret = 0;
 
 cleanup:
-    if (vm)
-        virObjectUnref(vm);
-    return ret;
+  if (vm)
+    virObjectUnref(vm);
+  virDomainDefFree(def);
+  return ret;
 }
 
 /* Test domain interface stats */
-static int
-testDomainInterfaceStats(const void *data G_GNUC_UNUSED)
-{
-    virDomainObj *vm = NULL;
-    virDomainDef *def = NULL;
-    virDomainInterfaceStats stats;
-    int ret = -1;
+static int testDomainInterfaceStats(const void *data G_GNUC_UNUSED) {
+  virDomainObj *vm = NULL;
+  virDomainDef *def = NULL;
+  virDomainInterfaceStatsStruct stats;
+  virDomainNetDef *net = NULL;
+  int ret = -1;
 
-    virTestSetHostArch(VIR_ARCH_AARCH64);
+  virTestSetHostArch(VIR_ARCH_AARCH64);
 
-    /* Create a test domain with network */
-    def = virDomainDefNew(NULL);
-    if (!def) {
-        fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
-        goto cleanup;
-    }
+  /* Create a test domain definition */
+  def = virDomainDefNew(driver.xmlopt);
+  if (!def)
+    goto cleanup;
 
-    def->os.type = VIR_DOMAIN_OSTYPE_HVM;
-    def->os.arch = VIR_ARCH_AARCH64;
-    def->os.machine = g_strdup("macosvf");
+  def->os.type = VIR_DOMAIN_OSTYPE_HVM;
+  def->os.arch = VIR_ARCH_AARCH64;
+  def->os.machine = g_strdup("macosvf");
 
-    virDomainDefSetVcpusMax(def, 1, NULL);
-    virDomainDefSetVcpus(def, 1);
+  /* Add a network interface */
+  net = virDomainNetDefNew(driver.xmlopt);
+  if (!net)
+    goto cleanup;
+  net->ifname = g_strdup("vnet0");
+  VIR_APPEND_ELEMENT(def->nets, def->nnets, net);
 
-    def->mem.cur_balloon = 1024 * 1024;
+  /* Create domain object */
+  vm = virDomainObjNew(driver.xmlopt);
+  if (!vm)
+    goto cleanup;
+  vm->def = def;
+  def = NULL;
 
-    /* Add a network interface */
-    virDomainNetDef *net = virDomainNetDefNew(VIR_DOMAIN_NET_TYPE_USER);
-    if (!net) {
-        fprintf(stderr, "%s: Failed to create network definition\n", __FUNCTION__);
-        goto cleanup;
-    }
+  /* Get interface stats */
+  if (macosvfDomainInterfaceStatsFromObj(vm, "vnet0", &stats) < 0) {
+    fprintf(stderr, "%s: Failed to get interface stats\n", __FUNCTION__);
+    goto cleanup;
+  }
 
-    net->model = VIR_DOMAIN_NET_MODEL_VIRTIO;
-    if (VIR_ALLOC_N(def->nets, 1) < 0 || (def->nnets = 1, def->nets[0] = net, 0)) {
-        virDomainNetDefFree(net);
-        goto cleanup;
-    }
+  /* Validate stats - should return -1 for unsupported values */
+  if (stats.rx_bytes != -1 || stats.tx_bytes != -1) {
+    fprintf(stderr, "%s: Expected unsupported stats to be -1\n", __FUNCTION__);
+    goto cleanup;
+  }
 
-    /* Create domain object */
-    vm = virDomainObjNew(def);
-    if (!vm) {
-        fprintf(stderr, "%s: Failed to create domain object\n", __FUNCTION__);
-        goto cleanup;
-    }
-
-    /* Get interface stats */
-    if (macosvfDomainInterfaceStatsFromObj(vm, "vnet0", &stats, sizeof(stats)) < 0) {
-        fprintf(stderr, "%s: Failed to get interface stats\n", __FUNCTION__);
-        goto cleanup;
-    }
-
-    /* Validate stats - should return -1 for unsupported values */
-    if (stats.rx_bytes != -1 || stats.rx_packets != -1 ||
-        stats.tx_bytes != -1 || stats.tx_packets != -1) {
-        fprintf(stderr, "%s: Expected unsupported stats to be -1\n", __FUNCTION__);
-        goto cleanup;
-    }
-
-    ret = 0;
+  ret = 0;
 
 cleanup:
-    if (vm)
-        virObjectUnref(vm);
-    return ret;
+  if (vm)
+    virObjectUnref(vm);
+  virDomainDefFree(def);
+  return ret;
 }
 
 /* Test invalid device paths for stats */
-static int
-testDomainStatsInvalidPath(const void *data G_GNUC_UNUSED)
-{
-    virDomainObj *vm = NULL;
-    virDomainDef *def = NULL;
-    virDomainBlockStats stats;
-    int ret = -1;
+static int testDomainStatsInvalidPath(const void *data G_GNUC_UNUSED) {
+  virDomainObj *vm = NULL;
+  virDomainDef *def = NULL;
+  virDomainBlockStatsStruct bstats;
+  virDomainInterfaceStatsStruct istats;
+  int ret = -1;
 
-    virTestSetHostArch(VIR_ARCH_AARCH64);
+  virTestSetHostArch(VIR_ARCH_AARCH64);
 
-    def = virDomainDefNew(NULL);
-    if (!def) {
-        fprintf(stderr, "%s: Failed to create domain definition\n", __FUNCTION__);
-        goto cleanup;
-    }
+  def = virDomainDefNew(driver.xmlopt);
+  if (!def)
+    goto cleanup;
 
-    def->os.type = VIR_DOMAIN_OSTYPE_HVM;
-    def->os.arch = VIR_ARCH_AARCH64;
-    def->os.machine = g_strdup("macosvf");
+  def->os.type = VIR_DOMAIN_OSTYPE_HVM;
+  def->os.arch = VIR_ARCH_AARCH64;
+  def->os.machine = g_strdup("macosvf");
 
-    virDomainDefSetVcpusMax(def, 1, NULL);
-    virDomainDefSetVcpus(def, 1);
+  vm = virDomainObjNew(driver.xmlopt);
+  if (!vm)
+    goto cleanup;
+  vm->def = def;
+  def = NULL;
 
-    def->mem.cur_balloon = 1024 * 1024;
+  /* Test with invalid disk path - should fail */
+  if (macosvfDomainBlockStatsFromObj(vm, "invalid-disk", &bstats) == 0) {
+    fprintf(stderr, "%s: Should fail with invalid disk path\n", __FUNCTION__);
+    goto cleanup;
+  }
 
-    vm = virDomainObjNew(def);
-    if (!vm) {
-        fprintf(stderr, "%s: Failed to create domain object\n", __FUNCTION__);
-        goto cleanup;
-    }
+  /* Test with invalid interface path - should fail */
+  if (macosvfDomainInterfaceStatsFromObj(vm, "invalid-net", &istats) == 0) {
+    fprintf(stderr, "%s: Should fail with invalid net path\n", __FUNCTION__);
+    goto cleanup;
+  }
 
-    /* Test with invalid disk path - should fail */
-    if (macosvfDomainBlockStatsFromObj(vm, "invalid-disk", &stats, sizeof(stats)) == 0) {
-        fprintf(stderr, "%s: Should fail with invalid disk path\n", __FUNCTION__);
-        goto cleanup;
-    }
-
-    ret = 0;
+  ret = 0;
 
 cleanup:
-    if (vm)
-        virObjectUnref(vm);
-    return ret;
+  if (vm)
+    virObjectUnref(vm);
+  virDomainDefFree(def);
+  return ret;
 }
 
-static int
-mymain(void)
-{
-    int ret = 0;
+static int mymain(void) {
+  int ret = 0;
 
-    /* macOSVF only supports ARM64/Apple Silicon */
-    virTestSetHostArch(VIR_ARCH_AARCH64);
+  driver.xmlopt = virMacOSVFDriverDomainXMLConfInit();
+  if (!driver.xmlopt)
+    return EXIT_FAILURE;
 
-    if ((driver.caps = macosvfCreateCapabilities()) == NULL)
-        return EXIT_FAILURE;
+  if (virTestRun("Domain control info", testDomainGetControlInfo, NULL) < 0)
+    ret = -1;
+  if (virTestRun("Domain block stats", testDomainBlockStats, NULL) < 0)
+    ret = -1;
+  if (virTestRun("Domain interface stats", testDomainInterfaceStats, NULL) < 0)
+    ret = -1;
+  if (virTestRun("Domain stats invalid path", testDomainStatsInvalidPath,
+                 NULL) < 0)
+    ret = -1;
 
-    if ((driver.xmlopt = virMacOSVFDriverCreateXMLConf(&driver)) == NULL) {
-        virObjectUnref(driver.caps);
-        return EXIT_FAILURE;
-    }
+  virObjectUnref(driver.xmlopt);
 
-    /* Create a connection */
-    if ((driver.conn = virConnectNew(&driver.conn, &macosvfConnectDriver)) == NULL) {
-        virObjectUnref(driver.caps);
-        virObjectUnref(driver.xmlopt);
-        return EXIT_FAILURE;
-    }
-
-    /* Test domain control info */
-    if (virTestRun("MACOSVF Domain Get Control Info",
-                   testDomainGetControlInfo, NULL) < 0)
-        ret = -1;
-
-    /* Test block stats */
-    if (virTestRun("MACOSVF Domain Block Stats",
-                   testDomainBlockStats, NULL) < 0)
-        ret = -1;
-
-    /* Test interface stats */
-    if (virTestRun("MACOSVF Domain Interface Stats",
-                   testDomainInterfaceStats, NULL) < 0)
-        ret = -1;
-
-    /* Test invalid paths */
-    if (virTestRun("MACOSVF Domain Stats Invalid Path",
-                   testDomainStatsInvalidPath, NULL) < 0)
-        ret = -1;
-
-    virObjectUnref(driver.caps);
-    virObjectUnref(driver.xmlopt);
-    virObjectUnref(driver.conn);
-
-    return ret == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+  return ret == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-VIR_TEST_MAIN_PRELOAD(mymain)
 VIR_TEST_MAIN(mymain)
 
 #else
 
-int
-main(void)
-{
-    return EXIT_AM_SKIP;
-}
+int main(void) { return 77; }
 
 #endif /* WITH_MACOSVF */

@@ -12,9 +12,13 @@
     <kernel>/boot/vmlinuz</kernel>
     <initrd>/boot/initrd.img</initrd>
     <cmdline>console=ttyS0 root=/dev/vda1</cmdline>
+    <boot dev='hd'/>
   </os>
   <cpu mode='host-model'/>
   <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
   <devices>
     <emulator>/usr/bin/macOSVF</emulator>
     <disk type='file' device='disk'>
@@ -22,6 +26,8 @@
       <source file='/var/lib/libvirt/images/macOSVF.qcow2'/>
       <target dev='vda' bus='virtio'/>
     </disk>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='isa' index='0'/>
     <serial type='pty'>
       <target port='0'/>
     </serial>

@@ -7,6 +7,7 @@
   <os>
     <type arch='aarch64' machine='macosvf'>hvm</type>
     <kernel>/path/to/kernel</kernel>
+    <boot dev='hd'/>
   </os>
   <features>
     <acpi/>
@@ -22,7 +23,14 @@
       <source file='/path/to/disk.qcow2'/>
       <target dev='vda' bus='virtio'/>
     </disk>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='isa' index='0'/>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
     <memballoon model='virtio'/>
-    <console type='pty'/>
   </devices>
 </domain>

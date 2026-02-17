@@ -22,10 +22,11 @@
       <driver name='qemu' type='raw'/>
       <source file='/path/to/disk.qcow2'/>
       <target dev='sda' bus='sata'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='0'/>
     </disk>
     <controller type='pci' index='0' model='pci-root'/>
     <controller type='isa' index='0'/>
-    <controller type='sata' index='0' ports='6'/>
+    <controller type='sata' index='0'/>
     <serial type='pty'>
       <target port='0'/>
     </serial>

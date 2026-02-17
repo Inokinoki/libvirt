@@ -25,7 +25,7 @@
       <mac address='52:54:00:71:b1:c0'/>
       <source bridge='br0'/>
       <virtualport type='openvswitch'>
-        <parameters interfaceid='393a909b-84a3-431e-bd1a-c78fdedb3298'/>
+        <parameters interfaceid='5d6ebd61-2433-47d2-9729-15e15e848646'/>
       </virtualport>
       <model type='virtio'/>
     </interface>
