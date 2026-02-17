@@ -28,10 +28,10 @@ typedef struct _macosvfVMObject macosvfVMObject;
 
 /* VM state tracking */
 typedef enum {
-    MACOSVF_VM_STATE_STOPPED = 0,
-    MACOSVF_VM_STATE_RUNNING = 1,
-    MACOSVF_VM_STATE_PAUSED = 2,
-    MACOSVF_VM_STATE_ERROR = 3,
+  MACOSVF_VM_STATE_STOPPED = 0,
+  MACOSVF_VM_STATE_RUNNING = 1,
+  MACOSVF_VM_STATE_PAUSED = 2,
+  MACOSVF_VM_STATE_ERROR = 3,
 } macosvfVMState;
 
 /* VM operations */
@@ -54,7 +54,9 @@ int macosvfVMSetupConsole(virDomainDef *def, macosvfVMObject *vm);
 int macosvfVMSetupGraphics(virDomainDef *def, macosvfVMObject *vm);
 int macosvfVMSetupInput(virDomainDef *def, macosvfVMObject *vm);
 int macosvfVMSetupAudio(virDomainDef *def, macosvfVMObject *vm);
+int macosvfVMSetupRNG(virDomainDef *def, macosvfVMObject *vm);
 
 /* Statistics */
 int macosvfVMGetCPUStats(macosvfVMObject *vm, unsigned long long *cpuTime);
-int macosvfVMGetMemoryStats(macosvfVMObject *vm, unsigned long long *memoryUsed);
+int macosvfVMGetMemoryStats(macosvfVMObject *vm, virDomainMemoryStatPtr stats,
+                            unsigned int nr_stats);
