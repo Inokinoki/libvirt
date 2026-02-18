@@ -78,9 +78,7 @@ jobs:
             local watcher_pid=$!
 
             local rc=0
-            if ! wait "$cmd_pid"; then
-              rc=$?
-            fi
+            wait "$cmd_pid" || rc=$?
 
             kill "$watcher_pid" 2>/dev/null || true
             wait "$watcher_pid" 2>/dev/null || true
@@ -97,7 +95,7 @@ jobs:
           }
           trap cleanup EXIT
 
-          domain_xml="$PWD/ci-macosvf-aarch64.xml"
+          domain_xml="$PWD/builddir/ci-macosvf-aarch64.xml"
           cat > "$domain_xml" <<'EOF'
           <domain type='macosvf'>
             <name>ci-macosvf-aarch64</name>
@@ -119,6 +117,7 @@ jobs:
           EOF
 
           # Use meson devenv so libvirt libraries/drivers are found reliably.
+          ls -l "$domain_xml"
           virsh_devenv --version
           virsh_devenv uri
           virsh_devenv define "$domain_xml"
