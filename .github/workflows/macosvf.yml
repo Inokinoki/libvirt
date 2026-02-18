@@ -1,16 +1,8 @@
 name: macOS Virtualization.Framework Build and Test
 
 on:
-  push:
-    paths:
-      - 'src/macosvf/**'
-      - 'tests/macosvf*'
-      - '.github/workflows/macosvf.yml'
-  pull_request:
-    paths:
-      - 'src/macosvf/**'
-      - 'tests/macosvf*'
-      - '.github/workflows/macosvf.yml'
+  push: {}
+  pull_request: {}
   workflow_dispatch:
 
 permissions:
