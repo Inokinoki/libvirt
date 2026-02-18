@@ -291,12 +291,12 @@ static virDomainPtr macosvfDomainLookupByID(virConnectPtr conn, int id) {
     return NULL;
 
   if (virDomainLookupByIDEnsureACL(conn, vm->def) < 0) {
-    virObjectUnref(vm);
+    virDomainObjEndAPI(&vm);
     return NULL;
   }
 
   dom = virGetDomain(conn, vm->def->name, vm->def->uuid, vm->def->id);
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
 
   return dom;
 }
@@ -311,12 +311,12 @@ static virDomainPtr macosvfDomainLookupByUUID(virConnectPtr conn,
     return NULL;
 
   if (virDomainLookupByUUIDEnsureACL(conn, vm->def) < 0) {
-    virObjectUnref(vm);
+    virDomainObjEndAPI(&vm);
     return NULL;
   }
 
   dom = virGetDomain(conn, vm->def->name, vm->def->uuid, vm->def->id);
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
 
   return dom;
 }
@@ -331,12 +331,12 @@ static virDomainPtr macosvfDomainLookupByName(virConnectPtr conn,
     return NULL;
 
   if (virDomainLookupByNameEnsureACL(conn, vm->def) < 0) {
-    virObjectUnref(vm);
+    virDomainObjEndAPI(&vm);
     return NULL;
   }
 
   dom = virGetDomain(conn, vm->def->name, vm->def->uuid, vm->def->id);
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
 
   return dom;
 }
@@ -363,7 +363,7 @@ static int macosvfDomainGetInfo(virDomainPtr dom, virDomainInfoPtr info) {
     return -1;
 
   if (virDomainGetInfoEnsureACL(dom->conn, vm->def) < 0) {
-    virObjectUnref(vm);
+    virDomainObjEndAPI(&vm);
     return -1;
   }
 
@@ -388,7 +388,7 @@ static int macosvfDomainGetInfo(virDomainPtr dom, virDomainInfoPtr info) {
   info->memory =
       memoryUsed > 0 ? memoryUsed : virDomainDefGetMemoryTotal(vm->def);
 
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return 0;
 }
 
@@ -409,7 +409,7 @@ static int macosvfDomainGetState(virDomainPtr dom, int *state, int *reason,
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -428,7 +428,7 @@ static char *macosvfDomainGetXMLDesc(virDomainPtr dom, unsigned int flags) {
   ret = virDomainDefFormat(vm->def, NULL, flags);
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -495,7 +495,7 @@ static int macosvfDomainMemoryStats(virDomainPtr dom,
   ret = i;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -517,7 +517,7 @@ static char *macosvfDomainGetSchedulerType(virDomainPtr dom,
   ret = g_strdup("macosvf");
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -545,7 +545,7 @@ static int macosvfDomainGetSchedulerParametersFlags(virDomainPtr dom,
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -590,7 +590,7 @@ static int macosvfDomainSetSchedulerParametersFlags(virDomainPtr dom,
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -644,7 +644,7 @@ static int macosvfDomainSetBlockIoTune(virDomainPtr dom, const char *path,
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -732,7 +732,7 @@ static int macosvfDomainGetBlockIoTune(virDomainPtr dom, const char *path,
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -817,7 +817,7 @@ static int macosvfDomainSetMemoryParameters(virDomainPtr dom,
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -885,7 +885,7 @@ static int macosvfDomainGetMemoryParameters(virDomainPtr dom,
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -980,7 +980,7 @@ static int macosvfDomainSetNumaParameters(virDomainPtr dom,
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1040,7 +1040,7 @@ static int macosvfDomainGetNumaParameters(virDomainPtr dom,
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1200,7 +1200,7 @@ cleanup:
   if (bandwidth) {
     virNetDevBandwidthFree(bandwidth);
   }
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1304,7 +1304,7 @@ static int macosvfDomainGetInterfaceParameters(virDomainPtr dom,
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1340,7 +1340,7 @@ static int macosvfDomainGetControlInfo(virDomainPtr dom,
   ret = macosvfDomainGetControlInfoFromObj(vm, info);
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1379,7 +1379,7 @@ static int macosvfDomainBlockStats(virDomainPtr dom, const char *path,
   ret = macosvfDomainBlockStatsFromObj(vm, path, stats);
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1421,7 +1421,7 @@ static int macosvfDomainInterfaceStats(virDomainPtr dom, const char *path,
   ret = macosvfDomainInterfaceStatsFromObj(vm, path, stats);
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1447,7 +1447,7 @@ static int macosvfDomainShutdownFlags(virDomainPtr dom, unsigned int flags) {
   ret = macosvfVMStop((macosvfVMObject *)priv->vm, false);
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1480,7 +1480,7 @@ static int macosvfDomainDestroyFlags(virDomainPtr dom, unsigned int flags) {
   }
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1511,7 +1511,7 @@ static int macosvfDomainSuspend(virDomainPtr dom) {
   }
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1538,7 +1538,7 @@ static int macosvfDomainResume(virDomainPtr dom) {
   }
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1632,7 +1632,7 @@ static int macosvfDomainCreate(virDomainPtr dom) {
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1644,13 +1644,13 @@ static char *macosvfDomainGetOSType(virDomainPtr dom) {
     return NULL;
 
   if (virDomainGetOSTypeEnsureACL(dom->conn, vm->def) < 0) {
-    virObjectUnref(vm);
+    virDomainObjEndAPI(&vm);
     return NULL;
   }
 
   ret = g_strdup(virDomainOSTypeToString(vm->def->os.type));
 
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1662,13 +1662,13 @@ static unsigned long long macosvfDomainGetMaxMemory(virDomainPtr dom) {
     return 0;
 
   if (virDomainGetMaxMemoryEnsureACL(dom->conn, vm->def) < 0) {
-    virObjectUnref(vm);
+    virDomainObjEndAPI(&vm);
     return 0;
   }
 
   ret = virDomainDefGetMemoryTotal(vm->def);
 
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1690,7 +1690,7 @@ static int macosvfDomainSetMemoryFlags(virDomainPtr dom,
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1796,7 +1796,7 @@ static int macosvfDomainUndefineFlags(virDomainPtr dom, unsigned int flags) {
   ret = 0;
 
 cleanup:
-  virObjectUnref(vm);
+  virDomainObjEndAPI(&vm);
   return ret;
 }
 
@@ -1944,7 +1944,7 @@ macosvfStateInitialize(bool privileged, const char *root,
             continue;
 
           VIR_INFO("Loaded domain '%s' from %s", vm->def->name, xmlFile);
-          virObjectUnref(vm);
+          virDomainObjEndAPI(&vm);
         }
       }
       closedir(dir);
