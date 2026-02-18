@@ -64,19 +64,32 @@ jobs:
           run_with_timeout() {
             local seconds="$1"
             shift
-            python3 - "$seconds" "$@" <<'PY'
-import subprocess
-import sys
 
-timeout = int(sys.argv[1])
-cmd = sys.argv[2:]
-try:
-    completed = subprocess.run(cmd, timeout=timeout)
-except subprocess.TimeoutExpired:
-    print(f"Timed out after {timeout}s: {' '.join(cmd)}", file=sys.stderr)
-    sys.exit(124)
-sys.exit(completed.returncode)
-PY
+            "$@" &
+            local cmd_pid=$!
+
+            (
+              sleep "$seconds"
+              if kill -0 "$cmd_pid" 2>/dev/null; then
+                echo "Timed out after ${seconds}s: $*" >&2
+                kill "$cmd_pid" 2>/dev/null || true
+              fi
+            ) &
+            local watcher_pid=$!
+
+            local rc=0
+            if ! wait "$cmd_pid"; then
+              rc=$?
+            fi
+
+            kill "$watcher_pid" 2>/dev/null || true
+            wait "$watcher_pid" 2>/dev/null || true
+
+            if [ "$rc" -eq 143 ]; then
+              return 124
+            fi
+
+            return "$rc"
           }
 
           cleanup() {
