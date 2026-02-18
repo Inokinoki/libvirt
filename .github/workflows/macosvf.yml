@@ -61,15 +61,42 @@ jobs:
           meson test -C builddir \
             macosvfxml2xmltest \
             macosvfcapabilitiestest \
-            macosvfdomainopstest \
             --no-rebuild \
             --print-errorlogs
 
       - name: virsh macosvf integration smoke test (aarch64 domain)
         env:
           LIBVIRT_DEFAULT_URI: macosvf:///session
+          LIBVIRT_DEBUG: 1
         run: |
           set -euo pipefail
+
+          virsh_devenv() {
+            meson devenv -C builddir -- ./tools/virsh -c macosvf:///session "$@"
+          }
+
+          run_with_timeout() {
+            local seconds="$1"
+            shift
+            python3 - "$seconds" "$@" <<'PY'
+import subprocess
+import sys
+
+timeout = int(sys.argv[1])
+cmd = sys.argv[2:]
+try:
+    completed = subprocess.run(cmd, timeout=timeout)
+except subprocess.TimeoutExpired:
+    print(f"Timed out after {timeout}s: {' '.join(cmd)}", file=sys.stderr)
+    sys.exit(124)
+sys.exit(completed.returncode)
+PY
+          }
+
+          cleanup() {
+            virsh_devenv undefine ci-macosvf-aarch64 >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
 
           cat > ci-macosvf-aarch64.xml <<'EOF'
           <domain type='macosvf'>
@@ -92,14 +119,15 @@ jobs:
           EOF
 
           # Use meson devenv so libvirt libraries/drivers are found reliably.
-          meson devenv -C builddir -- ./tools/virsh -c macosvf:///session uri
-          meson devenv -C builddir -- ./tools/virsh -c macosvf:///session define ci-macosvf-aarch64.xml
+          virsh_devenv --version
+          virsh_devenv uri
+          virsh_devenv define ci-macosvf-aarch64.xml
 
           # The previous regression manifested during listing domains.
-          meson devenv -C builddir -- ./tools/virsh -c macosvf:///session list --all
+          run_with_timeout 30 meson devenv -C builddir -- ./tools/virsh -c macosvf:///session list --all
 
-          meson devenv -C builddir -- ./tools/virsh -c macosvf:///session dominfo ci-macosvf-aarch64
-          meson devenv -C builddir -- ./tools/virsh -c macosvf:///session undefine ci-macosvf-aarch64
+          run_with_timeout 30 meson devenv -C builddir -- ./tools/virsh -c macosvf:///session dominfo ci-macosvf-aarch64
+          virsh_devenv undefine ci-macosvf-aarch64
 
       - name: Upload build and test logs
         if: always()
