@@ -97,7 +97,8 @@ jobs:
           }
           trap cleanup EXIT
 
-          cat > ci-macosvf-aarch64.xml <<'EOF'
+          domain_xml="$PWD/ci-macosvf-aarch64.xml"
+          cat > "$domain_xml" <<'EOF'
           <domain type='macosvf'>
             <name>ci-macosvf-aarch64</name>
             <memory unit='KiB'>524288</memory>
@@ -120,7 +121,7 @@ jobs:
           # Use meson devenv so libvirt libraries/drivers are found reliably.
           virsh_devenv --version
           virsh_devenv uri
-          virsh_devenv define ci-macosvf-aarch64.xml
+          virsh_devenv define "$domain_xml"
 
           # The previous regression manifested during listing domains.
           run_with_timeout 30 virsh_devenv list --all
