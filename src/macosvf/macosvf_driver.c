@@ -257,29 +257,63 @@ static int macosvfConnectNumOfDomains(virConnectPtr conn) {
   return n;
 }
 
+struct macosvfListData {
+  virDomainPtr *doms;
+  virConnectPtr conn;
+  int count;
+};
+
+static int macosvfListCallback(virDomainObj *obj,
+                                void *opaque)
+{
+  struct macosvfListData *data = opaque;
+
+  virObjectLock(obj);
+  data->doms[data->count] = virGetDomain(data->conn, obj->def->name,
+                                          obj->def->uuid, -1);
+  virObjectUnlock(obj);
+
+  if (!data->doms[data->count])
+    return -1;
+
+  data->count++;
+  return 0;
+}
+
 static int macosvfConnectListAllDomains(virConnectPtr conn,
                                         virDomainPtr **domains,
                                         unsigned int flags) {
   macosvfConn *privconn = conn->privateData;
-  int ret;
+  struct macosvfListData data = { NULL, conn, 0 };
+  int n = 0;
 
-  VIR_DEBUG("macosvfConnectListAllDomains: Entry, flags=%u", flags);
+  VIR_WARN("macosvfConnectListAllDomains: Entry, flags=%u", flags);
 
-  if (virConnectListAllDomainsEnsureACL(conn) < 0) {
-    VIR_DEBUG("macosvfConnectListAllDomains: ACL check failed");
+  if (virConnectListAllDomainsEnsureACL(conn) < 0)
     return -1;
-  }
 
-  VIR_DEBUG("macosvfConnectListAllDomains: ACL check passed, calling "
-            "virDomainObjListExport");
+  VIR_WARN("macosvfConnectListAllDomains: Counting domains");
+  /* Count domains */
+  n = virDomainObjListNumOfDomains(privconn->domains, false, NULL, NULL);
 
-  ret = virDomainObjListExport(privconn->domains, conn, domains,
-                               virConnectListAllDomainsCheckACL, flags);
+  VIR_WARN("macosvfConnectListAllDomains: Found %d domains", n);
 
-  VIR_DEBUG("macosvfConnectListAllDomains: virDomainObjListExport returned %d",
-            ret);
+  if (n <= 0)
+    return n;
 
-  return ret;
+  data.doms = g_new0(virDomainPtr, n);
+  if (!data.doms)
+    return -1;
+
+  VIR_WARN("macosvfConnectListAllDomains: Iterating domains");
+  /* Collect domain references - virDomainObjListForEach handles locking internally */
+  virDomainObjListForEach(privconn->domains, false,
+                         macosvfListCallback, &data);
+
+  *domains = data.doms;
+  VIR_WARN("macosvfConnectListAllDomains: Returning %d", data.count);
+
+  return data.count;
 }
 
 static virDomainPtr macosvfDomainLookupByID(virConnectPtr conn, int id) {
@@ -1856,6 +1890,8 @@ macosvfStateInitialize(bool privileged, const char *root,
   char *configdir = NULL;
   char *rundir = NULL;
 
+  VIR_WARN("macosvfStateInitialize called: privileged=%d", privileged);
+
   if (root != NULL) {
     virReportError(VIR_ERR_INVALID_ARG, "%s",
                    _("Driver does not support embedded mode"));
@@ -1908,12 +1944,15 @@ macosvfStateInitialize(bool privileged, const char *root,
   }
 
   /* Load existing domains from config directory */
+  VIR_WARN("Checking for domains in config directory: %s", configdir);
   if (virFileExists(configdir)) {
     DIR *dir;
     struct dirent *entry;
 
+    VIR_WARN("Config directory exists, attempting to open: %s", configdir);
     dir = opendir(configdir);
     if (dir) {
+      VIR_WARN("Successfully opened config directory: %s", configdir);
       while ((entry = readdir(dir))) {
         char *suffix;
 
@@ -1932,19 +1971,26 @@ macosvfStateInitialize(bool privileged, const char *root,
           if (!xmlFile)
             continue;
 
-          if (virFileReadAll(xmlFile, 10 * 1024 * 1024, &xml) < 0)
+          if (virFileReadAll(xmlFile, 10 * 1024 * 1024, &xml) < 0) {
+            VIR_WARN("Failed to read file %s", xmlFile);
             continue;
+          }
 
+          VIR_WARN("Attempting to parse domain from %s", xmlFile);
           if (!(def = virDomainDefParseString(xml, driver->xmlopt, NULL,
-                                              VIR_DOMAIN_DEF_PARSE_INACTIVE)))
+                                              VIR_DOMAIN_DEF_PARSE_INACTIVE))) {
+            VIR_WARN("Failed to parse domain definition from %s", xmlFile);
             continue;
+          }
 
           if (!(vm = virDomainObjListAdd(driver->domains, &def, driver->xmlopt,
-                                         0, NULL)))
+                                         VIR_DOMAIN_OBJ_LIST_ADD_LIVE |
+                                         VIR_DOMAIN_OBJ_LIST_ADD_CHECK_LIVE,
+                                         NULL)))
             continue;
 
-          VIR_INFO("Loaded domain '%s' from %s", vm->def->name, xmlFile);
-          virObjectUnref(vm);
+          VIR_WARN("Loaded domain '%s' from %s", vm->def->name, xmlFile);
+          virDomainObjEndAPI(&vm);
         }
       }
       closedir(dir);
