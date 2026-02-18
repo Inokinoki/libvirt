@@ -52,6 +52,51 @@ struct _macosvfVMObject {
   bool isPaused;               /* Whether VM is currently paused */
 };
 
+/* Dedicated thread and runloop for VM operations */
+static NSThread *vm_thread = NULL;
+static NSRunLoop *vm_runloop = NULL;
+static dispatch_once_t runloop_initialized = false;
+
+/* Thread function to run the VM runloop */
+static void vm_runloop_thread(void) {
+  NSMachPort *dummyPort;
+
+  @autoreleasepool {
+    vm_runloop = [NSRunLoop currentRunLoop];
+
+    /* Add a dummy port to keep the runloop alive */
+    dummyPort = [[NSMachPort alloc] init];
+    [vm_runloop addPort:dummyPort forMode:NSDefaultRunLoopMode];
+
+    /* Run the runloop */
+    [vm_runloop run];
+
+    /* Should never reach here */
+  }
+}
+
+/* Helper to get the VM runloop (creates thread on first call) */
+static NSRunLoop *macosvfGetVMRunLoop(void) {
+  dispatch_once(&runloop_initialized, ^{
+    /* Create dedicated thread for VM operations */
+    vm_thread = [[NSThread alloc] initWithTarget:[NSObject class]
+                                         selector:@selector(call)
+                                           object:nil];
+    [vm_thread start];
+  });
+
+  return vm_runloop;
+}
+
+/* Helper to execute a block on the VM runloop */
+static void macosvfExecuteOnVMRunLoop(void (^block)(void)) {
+  /* Execute the block on the VM thread's runloop */
+  [[block copy] performSelector:@selector(invoke)
+                     onThread:vm_thread
+                   withObject:nil
+                waitUntilDone:NO];
+}
+
 /* Helper to get dispatch queue - create a dedicated queue for THIS VM */
 static dispatch_queue_t macosvfGetQueue(macosvfVMObject *vm) {
   if (!vm->queue) {
@@ -241,11 +286,10 @@ int macosvfVMCreate(virDomainDef *def, macosvfVMObject **vmptr) {
     vm->config = config;
 
     /* Create VM instance if configuration is valid
-     * Use the VM's dedicated queue for all operations and completion handlers.
-     * This ensures thread safety and proper synchronization. */
+     * Don't pass a queue - we'll execute all operations on a dedicated
+     * runloop thread that we manage. */
     if (vm->hasValidConfiguration) {
-      vm->vm = [[VZVirtualMachine alloc] initWithConfiguration:config
-                                                         queue:vm->queue];
+      vm->vm = [[VZVirtualMachine alloc] initWithConfiguration:config];
     }
   }
 
@@ -255,10 +299,7 @@ int macosvfVMCreate(virDomainDef *def, macosvfVMObject **vmptr) {
 
 /* VM start */
 int macosvfVMStart(macosvfVMObject *vm) {
-  __block bool startSuccess = false;
   __block NSError *startError = nil;
-  dispatch_semaphore_t sem;
-  dispatch_time_t timeout;
 
   if (!vm || !vm->vm || !vm->hasValidConfiguration) {
     virReportError(VIR_ERR_INVALID_ARG, "%s", _("Invalid VM object"));
@@ -294,15 +335,17 @@ int macosvfVMStart(macosvfVMObject *vm) {
             vm->hasValidConfiguration);
 
   @autoreleasepool {
-    VIR_DEBUG("macosvfVMStart: VM object: %p, queue: %p", vm->vm, vm->queue);
+    VIR_DEBUG("macosvfVMStart: VM object: %p", vm->vm);
 
-    sem = dispatch_semaphore_create(0);
+    if (!vm->vm) {
+      virReportError(VIR_ERR_INTERNAL_ERROR, "%s", _("VM object is NULL"));
+      return -1;
+    }
 
-    VIR_DEBUG("macosvfVMStart: Dispatching start async to VM queue");
+    VIR_DEBUG("macosvfVMStart: Calling startWithCompletionHandler");
 
-    /* Dispatch start to the VM's queue asynchronously */
-    dispatch_async(vm->queue, ^{
-      VIR_DEBUG("macosvfVMStart: Calling startWithCompletionHandler on queue");
+    /* Execute start on VM runloop thread */
+    macosvfExecuteOnVMRunLoop(^{
       [vm->vm startWithCompletionHandler:^(NSError *error) {
         VIR_DEBUG("macosvfVMStart: In completion handler, error=%s",
                   error ? [[error localizedDescription] UTF8String] : "none");
@@ -313,38 +356,15 @@ int macosvfVMStart(macosvfVMObject *vm) {
           vm->state = MACOSVF_VM_STATE_RUNNING;
           vm->startTime = macosvfGetTimeNs();
           vm->isPaused = false;
-          startSuccess = true;
         }
-        VIR_DEBUG("macosvfVMStart: Signaling semaphore");
-        dispatch_semaphore_signal(sem);
       }];
-      VIR_DEBUG("macosvfVMStart: startWithCompletionHandler returned");
     });
 
-    VIR_DEBUG("macosvfVMStart: Dispatch complete, waiting for completion");
-
-    /* Wait for start to complete (with timeout) */
-    timeout = dispatch_time(DISPATCH_TIME_NOW, 30 * NSEC_PER_SEC);
-    VIR_DEBUG("macosvfVMStart: Waiting for completion with 30s timeout");
-
-    if (dispatch_semaphore_wait(sem, timeout) != 0) {
-      VIR_DEBUG("macosvfVMStart: Timeout occurred");
-      virReportError(VIR_ERR_INTERNAL_ERROR, "%s", _("VM start timed out"));
-      return -1;
-    }
-
-    VIR_DEBUG("macosvfVMStart: Semaphore wait completed, startSuccess=%d",
-              startSuccess);
-
-    if (!startSuccess) {
-      virReportError(VIR_ERR_INTERNAL_ERROR, _("Failed to start VM: %1$s"),
-                     [[startError localizedDescription] UTF8String]);
-      return -1;
-    }
+    /* Don't wait - the start is asynchronous */
+    VIR_DEBUG("macosvfVMStart: VM start initiated successfully (async)");
+    vm->state = MACOSVF_VM_STATE_RUNNING;
+    return 0;
   }
-
-  VIR_DEBUG("macosvfVMStart: VM started successfully");
-  return 0;
 }
 
 /* VM stop */
