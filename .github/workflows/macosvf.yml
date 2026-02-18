@@ -95,7 +95,7 @@ jobs:
           }
           trap cleanup EXIT
 
-          domain_xml="$PWD/builddir/ci-macosvf-aarch64.xml"
+          domain_xml="$(cd builddir && pwd)/ci-macosvf-aarch64.xml"
           cat > "$domain_xml" <<'EOF'
           <domain type='macosvf'>
             <name>ci-macosvf-aarch64</name>
@@ -120,7 +120,7 @@ jobs:
           ls -l "$domain_xml"
           virsh_devenv --version
           virsh_devenv uri
-          virsh_devenv define "$domain_xml"
+          run_with_timeout 30 virsh_devenv define "$domain_xml"
 
           # The previous regression manifested during listing domains.
           run_with_timeout 30 virsh_devenv list --all
