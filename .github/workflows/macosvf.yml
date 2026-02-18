@@ -62,6 +62,8 @@ jobs:
           ls -ld . ./tools ./src 2>/dev/null || true
 
           virsh_cmd=(meson devenv ./tools/virsh -c macosvf:///session)
+          domain_name="ci-macosvf-aarch64-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}"
+          domain_uuid="$(uuidgen | tr '[:upper:]' '[:lower:]')"
 
           run_with_timeout() {
             local seconds="$1"
@@ -93,15 +95,15 @@ jobs:
           }
 
           cleanup() {
-            "${virsh_cmd[@]}" undefine ci-macosvf-aarch64 >/dev/null 2>&1 || true
+            "${virsh_cmd[@]}" undefine "$domain_name" >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
 
           domain_xml="ci-macosvf-aarch64.xml"
-          cat > "$domain_xml" <<'EOF'
+          cat > "$domain_xml" <<EOF
           <domain type='macosvf'>
-            <name>ci-macosvf-aarch64</name>
-            <uuid>11111111-2222-3333-4444-555555555555</uuid>
+            <name>${domain_name}</name>
+            <uuid>${domain_uuid}</uuid>
             <memory unit='KiB'>524288</memory>
             <currentMemory unit='KiB'>524288</currentMemory>
             <vcpu placement='static'>1</vcpu>
@@ -134,13 +136,14 @@ jobs:
           ls -l "$domain_xml"
           "${virsh_cmd[@]}" --version
           "${virsh_cmd[@]}" uri
+          "${virsh_cmd[@]}" undefine "$domain_name" >/dev/null 2>&1 || true
           run_with_timeout 30 "${virsh_cmd[@]}" define "$domain_xml"
 
           # The previous regression manifested during listing domains.
           run_with_timeout 30 "${virsh_cmd[@]}" list --all
 
-          run_with_timeout 30 "${virsh_cmd[@]}" dominfo ci-macosvf-aarch64
-          "${virsh_cmd[@]}" undefine ci-macosvf-aarch64
+          run_with_timeout 30 "${virsh_cmd[@]}" dominfo "$domain_name"
+          "${virsh_cmd[@]}" undefine "$domain_name"
 
       - name: Upload build and test logs
         if: always()
