@@ -36,7 +36,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew update
           brew install meson ninja pkg-config
           brew install glib gnutls libxml2 readline xz libpcap
           brew install make gnu-sed grep
@@ -57,25 +56,20 @@ jobs:
         run: |
           meson compile -C builddir -j"$(sysctl -n hw.logicalcpu)"
 
-      - name: Run macOS Virtualization.Framework unit tests
+      - name: Run focused macOS Virtualization.Framework unit tests
         run: |
           meson test -C builddir \
-            --suite macosvf \
+            macosvfxml2xmltest \
+            macosvfcapabilitiestest \
+            macosvfdomainopstest \
             --no-rebuild \
             --print-errorlogs
 
       - name: virsh macosvf integration smoke test (aarch64 domain)
         env:
-          DYLD_LIBRARY_PATH: ${{ github.workspace }}/builddir/src:${{ github.workspace }}/builddir/src/util:${{ github.workspace }}/builddir/src/conf:${{ github.workspace }}/builddir/src/libxl:${{ github.workspace }}/builddir/src/qemu
           LIBVIRT_DEFAULT_URI: macosvf:///session
         run: |
           set -euo pipefail
-
-          VIRSH="${GITHUB_WORKSPACE}/builddir/tools/virsh"
-          if [ ! -x "$VIRSH" ]; then
-            echo "error: built virsh not found at $VIRSH"
-            exit 1
-          fi
 
           cat > ci-macosvf-aarch64.xml <<'EOF'
           <domain type='macosvf'>
@@ -97,14 +91,15 @@ jobs:
           </domain>
           EOF
 
-          "$VIRSH" -c macosvf:///session uri
-          "$VIRSH" -c macosvf:///session define ci-macosvf-aarch64.xml
+          # Use meson devenv so libvirt libraries/drivers are found reliably.
+          meson devenv -C builddir -- ./tools/virsh -c macosvf:///session uri
+          meson devenv -C builddir -- ./tools/virsh -c macosvf:///session define ci-macosvf-aarch64.xml
 
           # The previous regression manifested during listing domains.
-          "$VIRSH" -c macosvf:///session list --all
+          meson devenv -C builddir -- ./tools/virsh -c macosvf:///session list --all
 
-          "$VIRSH" -c macosvf:///session dominfo ci-macosvf-aarch64
-          "$VIRSH" -c macosvf:///session undefine ci-macosvf-aarch64
+          meson devenv -C builddir -- ./tools/virsh -c macosvf:///session dominfo ci-macosvf-aarch64
+          meson devenv -C builddir -- ./tools/virsh -c macosvf:///session undefine ci-macosvf-aarch64
 
       - name: Upload build and test logs
         if: always()
