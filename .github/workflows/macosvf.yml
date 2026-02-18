@@ -2,17 +2,11 @@ name: macOS Virtualization.Framework Build and Test
 
 on:
   push:
-    branches:
-      - master
-      - macos-virtualization-frameworks
     paths:
       - 'src/macosvf/**'
       - 'tests/macosvf*'
       - '.github/workflows/macosvf.yml'
   pull_request:
-    branches:
-      - master
-      - macos-virtualization-frameworks
     paths:
       - 'src/macosvf/**'
       - 'tests/macosvf*'
@@ -25,7 +19,7 @@ permissions:
 jobs:
   build-and-test:
     name: Build and Test macOS Virtualization.Framework
-    runs-on: macos-14
+    runs-on: macos-latest
     timeout-minutes: 75
 
     steps:
