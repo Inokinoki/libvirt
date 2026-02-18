@@ -58,9 +58,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          virsh_devenv() {
-            meson devenv ./tools/virsh -c macosvf:///session "$@"
-          }
+          echo "cwd: $(pwd)"
+          ls -ld . ./tools ./src 2>/dev/null || true
+
+          virsh_cmd=(meson devenv ./tools/virsh -c macosvf:///session)
 
           run_with_timeout() {
             local seconds="$1"
@@ -92,7 +93,7 @@ jobs:
           }
 
           cleanup() {
-            virsh_devenv undefine ci-macosvf-aarch64 >/dev/null 2>&1 || true
+            "${virsh_cmd[@]}" undefine ci-macosvf-aarch64 >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
 
@@ -119,15 +120,15 @@ jobs:
 
           # Use meson devenv so libvirt libraries/drivers are found reliably.
           ls -l "$domain_xml"
-          virsh_devenv --version
-          virsh_devenv uri
-          run_with_timeout 30 virsh_devenv define "$domain_xml"
+          "${virsh_cmd[@]}" --version
+          "${virsh_cmd[@]}" uri
+          run_with_timeout 30 "${virsh_cmd[@]}" define "$domain_xml"
 
           # The previous regression manifested during listing domains.
-          run_with_timeout 30 virsh_devenv list --all
+          run_with_timeout 30 "${virsh_cmd[@]}" list --all
 
-          run_with_timeout 30 virsh_devenv dominfo ci-macosvf-aarch64
-          virsh_devenv undefine ci-macosvf-aarch64
+          run_with_timeout 30 "${virsh_cmd[@]}" dominfo ci-macosvf-aarch64
+          "${virsh_cmd[@]}" undefine ci-macosvf-aarch64
 
       - name: Upload build and test logs
         if: always()
