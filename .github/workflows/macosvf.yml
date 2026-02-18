@@ -51,6 +51,7 @@ jobs:
             --print-errorlogs
 
       - name: virsh macosvf integration smoke test (aarch64 domain)
+        working-directory: builddir
         env:
           LIBVIRT_DEFAULT_URI: macosvf:///session
           LIBVIRT_DEBUG: 1
@@ -58,10 +59,7 @@ jobs:
           set -euo pipefail
 
           virsh_devenv() {
-            (
-              cd builddir
-              meson devenv ./tools/virsh -c macosvf:///session "$@"
-            )
+            meson devenv ./tools/virsh -c macosvf:///session "$@"
           }
 
           run_with_timeout() {
@@ -99,7 +97,7 @@ jobs:
           trap cleanup EXIT
 
           domain_xml="ci-macosvf-aarch64.xml"
-          cat > "builddir/$domain_xml" <<'EOF'
+          cat > "$domain_xml" <<'EOF'
           <domain type='macosvf'>
             <name>ci-macosvf-aarch64</name>
             <memory unit='KiB'>524288</memory>
@@ -120,7 +118,7 @@ jobs:
           EOF
 
           # Use meson devenv so libvirt libraries/drivers are found reliably.
-          ls -l "builddir/$domain_xml"
+          ls -l "$domain_xml"
           virsh_devenv --version
           virsh_devenv uri
           run_with_timeout 30 virsh_devenv define "$domain_xml"
