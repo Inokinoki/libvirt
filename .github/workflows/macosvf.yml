@@ -58,7 +58,7 @@ jobs:
           set -euo pipefail
 
           virsh_devenv() {
-            meson devenv -C builddir -- ./tools/virsh -c macosvf:///session "$@"
+            meson devenv -C builddir ./tools/virsh -c macosvf:///session "$@"
           }
 
           run_with_timeout() {
@@ -123,9 +123,9 @@ jobs:
           virsh_devenv define ci-macosvf-aarch64.xml
 
           # The previous regression manifested during listing domains.
-          run_with_timeout 30 meson devenv -C builddir -- ./tools/virsh -c macosvf:///session list --all
+          run_with_timeout 30 virsh_devenv list --all
 
-          run_with_timeout 30 meson devenv -C builddir -- ./tools/virsh -c macosvf:///session dominfo ci-macosvf-aarch64
+          run_with_timeout 30 virsh_devenv dominfo ci-macosvf-aarch64
           virsh_devenv undefine ci-macosvf-aarch64
 
       - name: Upload build and test logs
