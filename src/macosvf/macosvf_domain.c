@@ -53,6 +53,7 @@ void macosvfDomainObjPrivateFree(void *obj) {
     macosvfVMFree(vm);
     priv->vm = NULL;
   }
+
   g_free(priv);
 }
 

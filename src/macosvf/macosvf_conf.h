@@ -55,6 +55,7 @@ struct _macosvfConn {
     char *pidFile;
 
     bool privileged;
+    int lastvmid; /* For allocating domain IDs */
 };
 
 virCaps *macosvfCreateCapabilities(void);

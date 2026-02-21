@@ -459,6 +459,10 @@ static char *macosvfDomainGetXMLDesc(virDomainPtr dom, unsigned int flags) {
   if (virDomainGetXMLDescEnsureACL(dom->conn, vm->def, flags) < 0)
     goto cleanup;
 
+  /* For live domains, don't use INACTIVE flag so PTY paths are included */
+  if (virDomainObjIsActive(vm))
+    flags &= ~VIR_DOMAIN_XML_INACTIVE;
+
   ret = virDomainDefFormat(vm->def, NULL, flags);
 
 cleanup:
@@ -1510,6 +1514,7 @@ static int macosvfDomainDestroyFlags(virDomainPtr dom, unsigned int flags) {
 
   ret = macosvfVMStop((macosvfVMObject *)priv->vm, true);
   if (ret == 0) {
+    vm->def->id = -1; /* Reset domain ID */
     virDomainObjSetState(vm, VIR_DOMAIN_SHUTOFF, VIR_DOMAIN_SHUTOFF_DESTROYED);
   }
 
@@ -1576,6 +1581,106 @@ cleanup:
   return ret;
 }
 
+static int
+macosvfDomainOpenConsole(virDomainPtr dom,
+                         const char *dev_name,
+                         virStreamPtr st,
+                         unsigned int flags)
+{
+  virDomainObj *vm = NULL;
+  size_t i;
+  virDomainChrDef *chr = NULL;
+  macosvfDomainObjPrivate *priv;
+  int consoleFd = -1;
+  int ret = -1;
+
+  virCheckFlags(0, -1);
+
+  if (!(vm = macosvfDomObjFromDomain(dom))) {
+    VIR_WARN("macosvfDomainOpenConsole: Failed to get domain object");
+    goto cleanup;
+  }
+
+  if (virDomainOpenConsoleEnsureACL(dom->conn, vm->def) < 0) {
+    VIR_WARN("macosvfDomainOpenConsole: ACL check failed");
+    goto cleanup;
+  }
+
+  VIR_WARN("macosvfDomainOpenConsole: VM state=%d, reason=%d",
+           virDomainObjGetState(vm, NULL), vm->state.reason);
+
+  /* Check if domain is running */
+  if (virDomainObjGetState(vm, NULL) != VIR_DOMAIN_RUNNING) {
+    virReportError(VIR_ERR_OPERATION_INVALID, "%s",
+                   _("domain is not running"));
+    goto cleanup;
+  }
+
+  /* Find the requested console device */
+  if (dev_name) {
+    for (i = 0; i < vm->def->nconsoles; i++) {
+      if (vm->def->consoles[i]->info.alias &&
+          STREQ(dev_name, vm->def->consoles[i]->info.alias)) {
+        chr = vm->def->consoles[i];
+        break;
+      }
+    }
+  } else {
+    if (vm->def->nconsoles)
+      chr = vm->def->consoles[0];
+    else if (vm->def->nserials)
+      chr = vm->def->serials[0];
+  }
+
+  if (!chr) {
+    virReportError(VIR_ERR_INTERNAL_ERROR,
+                   _("cannot find console device '%1$s'"),
+                   dev_name ? dev_name : _("default"));
+    goto cleanup;
+  }
+
+  if (chr->source->type != VIR_DOMAIN_CHR_TYPE_PTY) {
+    virReportError(VIR_ERR_INTERNAL_ERROR,
+                   _("character device %1$s is not using a PTY"),
+                   dev_name ? dev_name : NULLSTR(chr->info.alias));
+    goto cleanup;
+  }
+
+  /* Get the master FD from the VM object */
+  priv = vm->privateData;
+  if (!priv || !priv->vm) {
+    virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                   _("VM object not initialized"));
+    goto cleanup;
+  }
+
+  consoleFd = macosvfVMGetConsoleMasterFd((macosvfVMObject *)priv->vm);
+  if (consoleFd < 0) {
+    virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                   _("console master FD not available"));
+    goto cleanup;
+  }
+
+  /* Duplicate the FD for the stream */
+  consoleFd = dup(consoleFd);
+  if (consoleFd < 0) {
+    virReportSystemError(errno, "%s", _("Failed to duplicate console FD"));
+    goto cleanup;
+  }
+
+  /* Open the stream with the duplicated FD */
+  if (virFDStreamOpen(st, consoleFd) < 0) {
+    close(consoleFd);
+    goto cleanup;
+  }
+
+  ret = 0;
+
+ cleanup:
+  virDomainObjEndAPI(&vm);
+  return ret;
+}
+
 static virDomainPtr macosvfDomainCreateXML(virConnectPtr conn, const char *xml,
                                            unsigned int flags) {
   macosvfConn *privconn = conn->privateData;
@@ -1615,6 +1720,9 @@ static virDomainPtr macosvfDomainCreateXML(virConnectPtr conn, const char *xml,
 
   priv->vm = vmobj;
 
+  /* Allocate domain ID for running domain */
+  vm->def->id = g_atomic_int_add(&privconn->lastvmid, 1) + 1;
+
   /* Start the VM if not paused */
   if (!(flags & VIR_DOMAIN_START_PAUSED)) {
     if (macosvfVMStart(vmobj) < 0) {
@@ -1639,44 +1747,36 @@ static int macosvfDomainCreate(virDomainPtr dom) {
   macosvfVMObject *vmobj = NULL;
   int ret = -1;
 
-  VIR_WARN("macosvfDomainCreate: Starting for domain '%s'", dom->name);
-
-  if (!(vm = macosvfDomObjFromDomain(dom))) {
-    VIR_WARN("macosvfDomainCreate: Failed to get domain object");
+  if (!(vm = macosvfDomObjFromDomain(dom)))
     return -1;
-  }
 
-  VIR_WARN("macosvfDomainCreate: Got domain object, checking ACL");
   if (virDomainCreateEnsureACL(dom->conn, vm->def) < 0)
     goto cleanup;
 
   priv = vm->privateData;
-  VIR_WARN("macosvfDomainCreate: Got private data, priv->vm=%p", priv->vm);
 
   /* Create VM object if not exists */
   if (!priv->vm) {
-    VIR_WARN("macosvfDomainCreate: Creating VM object");
     if (macosvfVMCreate(vm->def, &vmobj) < 0) {
       virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
                      _("Failed to create VM object"));
       goto cleanup;
     }
     priv->vm = vmobj;
-    VIR_WARN("macosvfDomainCreate: VM object created successfully");
   }
 
-  VIR_WARN("macosvfDomainCreate: About to start VM");
+  /* Allocate domain ID for running domain */
+  vm->def->id = g_atomic_int_add(&macosvf_driver->lastvmid, 1) + 1;
+
   if (macosvfVMStart((macosvfVMObject *)priv->vm) < 0) {
     virReportError(VIR_ERR_INTERNAL_ERROR, "%s", _("Failed to start VM"));
     goto cleanup;
   }
 
-  VIR_WARN("macosvfDomainCreate: VM started successfully");
   virDomainObjSetState(vm, VIR_DOMAIN_RUNNING, VIR_DOMAIN_RUNNING_BOOTED);
   ret = 0;
 
 cleanup:
-  VIR_WARN("macosvfDomainCreate: Cleanup, ret=%d", ret);
   virDomainObjEndAPI(&vm);
   return ret;
 }
@@ -2082,6 +2182,7 @@ static virHypervisorDriver macosvfHypervisorDriver = {
     .domainLookupByName = macosvfDomainLookupByName,         /* 10.10.0 */
     .domainSuspend = macosvfDomainSuspend,                   /* 10.10.0 */
     .domainResume = macosvfDomainResume,                     /* 10.10.0 */
+    .domainOpenConsole = macosvfDomainOpenConsole,           /* 10.10.0 */
     .domainShutdown = macosvfDomainShutdown,                 /* 10.10.0 */
     .domainShutdownFlags = macosvfDomainShutdownFlags,       /* 10.10.0 */
     .domainDestroy = macosvfDomainDestroy,                   /* 10.10.0 */

@@ -60,3 +60,5 @@ int macosvfVMSetupRNG(virDomainDef *def, macosvfVMObject *vm);
 int macosvfVMGetCPUStats(macosvfVMObject *vm, unsigned long long *cpuTime);
 int macosvfVMGetMemoryStats(macosvfVMObject *vm, virDomainMemoryStatPtr stats,
                             unsigned int nr_stats);
+int macosvfVMGetConsolePath(macosvfVMObject *vm, char **path);
+int macosvfVMGetConsoleMasterFd(macosvfVMObject *vm);
