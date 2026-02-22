@@ -82,7 +82,12 @@ endif
 
 runstatedir = get_option('runstatedir')
 if runstatedir == ''
-  runstatedir = '/run'
+  # On macOS, use /tmp since /run doesn't exist
+  if host_machine.system() == 'darwin'
+    runstatedir = '/tmp'
+  else
+    runstatedir = '/run'
+  endif
 endif
 
 initconfdir = get_option('initconfdir')
