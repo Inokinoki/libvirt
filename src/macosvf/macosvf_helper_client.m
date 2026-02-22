@@ -116,17 +116,29 @@ static int xpcRunLoopInit(void) {
 
 /* Cleanup the XPC run loop thread */
 static void xpcRunLoopCleanup(void) {
-    if (runLoopReady) {
-        runLoopReady = NO;
-
-        /* Stop the run loop */
-        if (xpcRunLoop) {
-            CFRunLoopStop(xpcRunLoop);
-        }
-
-        pthread_join(xpcRunLoopThread, NULL);
-        VIR_INFO("XPC run loop thread cleaned up");
+    if (!runLoopReady) {
+        return;
     }
+
+    runLoopReady = NO;
+
+    /* Give pending XPC operations time to complete */
+    usleep(100000); /* 100ms */
+
+    /* Stop the run loop - must be called from the run loop thread */
+    if (xpcRunLoop) {
+        /* Use CFRunLoopPerformBlock to ensure CFRunLoopStop is called
+         * from the same thread that owns the run loop */
+        CFRunLoopPerformBlock(xpcRunLoop, kCFRunLoopDefaultMode, ^{
+            CFRunLoopStop(xpcRunLoop);
+        });
+        CFRunLoopWakeUp(xpcRunLoop);
+        xpcRunLoop = NULL;
+    }
+
+    /* Wait for thread to exit - use pthread_join on macOS */
+    pthread_join(xpcRunLoopThread, NULL);
+    VIR_INFO("XPC run loop thread cleaned up");
 }
 
 /* Install and launch the helper using SMJobBless */

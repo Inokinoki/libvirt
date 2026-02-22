@@ -6,6 +6,7 @@
 #import <fcntl.h>
 #import <errno.h>
 #import <string.h>
+#import <unistd.h>
 
 @interface VZManager () {
     NSMutableDictionary<NSString *, VZVirtualMachine *> *_virtualMachines;
@@ -128,21 +129,32 @@
             /* Create file handles for the PTY using POSIX open
          * Note: Do NOT use O_NONBLOCK - VZ framework expects blocking I/O
          * for the serial port attachment to work correctly.
+         * Open separate FDs for reading and writing to ensure proper full-duplex operation.
          */
-            int ptyFd = open([ptyPath UTF8String], O_RDWR);
-            NSLog(@"VZManager: ptyFd = %d", ptyFd);
+            int readFd = open([ptyPath UTF8String], O_RDONLY | O_NOCTTY);
+            int writeFd = open([ptyPath UTF8String], O_WRONLY | O_NOCTTY);
+            NSLog(@"VZManager: readFd = %d, writeFd = %d", readFd, writeFd);
 
             NSFileHandle *readHandle = nil;
             NSFileHandle *writeHandle = nil;
 
-            if (ptyFd >= 0) {
+            if (readFd >= 0 && writeFd >= 0) {
                 /* Create separate file handles for reading and writing.
-                 * While we use the same underlying FD, this is the expected
-                 * pattern for VZFileHandleSerialPortAttachment.
+                 * Each uses its own file descriptor for proper full-duplex I/O.
                  */
-                readHandle = [[NSFileHandle alloc] initWithFileDescriptor:ptyFd closeOnDealloc:NO];
-                writeHandle = [[NSFileHandle alloc] initWithFileDescriptor:ptyFd closeOnDealloc:NO];
+                readHandle = [[NSFileHandle alloc] initWithFileDescriptor:readFd closeOnDealloc:YES];
+                writeHandle = [[NSFileHandle alloc] initWithFileDescriptor:writeFd closeOnDealloc:YES];
                 NSLog(@"VZManager: readHandle = %@, writeHandle = %@", readHandle ?: @"(nil)", writeHandle ?: @"(nil)");
+            } else {
+                if (readFd < 0) {
+                    NSLog(@"VZManager: Failed to open PTY for reading: %s", strerror(errno));
+                }
+                if (writeFd < 0) {
+                    NSLog(@"VZManager: Failed to open PTY for writing: %s", strerror(errno));
+                }
+                /* Clean up any successfully opened FD */
+                if (readFd >= 0) close(readFd);
+                if (writeFd >= 0) close(writeFd);
             }
 
             if (readHandle && writeHandle) {

@@ -1711,26 +1711,36 @@ static virDomainPtr macosvfDomainCreateXML(virConnectPtr conn, const char *xml,
 
   priv = vm->privateData;
 
+  VIR_DEBUG("macosvfDomainCreateXML: VM added to list, priv->vm=%p", priv->vm);
+
   /* Create the VM object */
   if (macosvfVMCreate(vm->def, &vmobj) < 0) {
+    VIR_ERROR("macosvfDomainCreateXML: Failed to create VM object");
     virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
                    _("Failed to create VM object"));
     goto cleanup;
   }
 
+  VIR_DEBUG("macosvfDomainCreateXML: VM object created, vmobj=%p", vmobj);
   priv->vm = vmobj;
 
   /* Allocate domain ID for running domain */
   vm->def->id = g_atomic_int_add(&privconn->lastvmid, 1) + 1;
+  VIR_DEBUG("macosvfDomainCreateXML: Allocated domain ID %d", vm->def->id);
 
   /* Start the VM if not paused */
+  VIR_DEBUG("macosvfDomainCreateXML: flags=%u, VIR_DOMAIN_START_PAUSED=%u", flags, VIR_DOMAIN_START_PAUSED);
   if (!(flags & VIR_DOMAIN_START_PAUSED)) {
+    VIR_DEBUG("macosvfDomainCreateXML: Calling macosvfVMStart");
     if (macosvfVMStart(vmobj) < 0) {
+      VIR_ERROR("macosvfDomainCreateXML: Failed to start VM");
       virReportError(VIR_ERR_INTERNAL_ERROR, "%s", _("Failed to start VM"));
       goto cleanup;
     }
+    VIR_DEBUG("macosvfDomainCreateXML: VM started successfully");
     virDomainObjSetState(vm, VIR_DOMAIN_RUNNING, VIR_DOMAIN_RUNNING_BOOTED);
   } else {
+    VIR_DEBUG("macosvfDomainCreateXML: VM paused by request");
     virDomainObjSetState(vm, VIR_DOMAIN_PAUSED, VIR_DOMAIN_PAUSED_USER);
   }
 
