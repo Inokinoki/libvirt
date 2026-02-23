@@ -16,21 +16,21 @@
     <key>com.apple.security.network.server</key>
     <true/>
 
-    <!-- File system access for disk images -->
+    <!-- Full disk access for privileged helper -->
+    <key>com.apple.security.temporary-exception.files</key>
+    <array>
+        <string>/</string>
+    </array>
+
+    <!-- File system access -->
     <key>com.apple.security.files.user-selected.read-write</key>
     <true/>
     <key>com.apple.security.files.bookmarks.app-scope</key>
     <true/>
     <key>com.apple.security.files.bookmarks.document-scope</key>
     <true/>
-    <key>com.apple.security.files.user-selected.read-only</key>
+    <key>com.apple.security.files.downloads.read-write</key>
     <true/>
-    <!-- Full file system access for privileged helper -->
-    <key>com.apple.security.temporary-exception.files</key>
-    <array>
-        <string>/Users/</string>
-        <string>/Volumes/</string>
-    </array>
 
     <!-- Allow XPC communication -->
     <key>com.apple.security.xpc</key>
