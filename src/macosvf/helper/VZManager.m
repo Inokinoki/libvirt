@@ -209,42 +209,52 @@
 
     if (ptyPath) {
       /* Create file handles for the PTY using POSIX open
+       * Open with O_RDWR first, then dup() to create separate FDs
+       * for reading and writing. This ensures proper PTY handling.
        * Note: Do NOT use O_NONBLOCK - VZ framework expects blocking I/O
        * for the serial port attachment to work correctly.
-       * Open separate FDs for reading and writing to ensure proper full-duplex
-       * operation.
        */
-      int readFd = open([ptyPath UTF8String], O_RDONLY | O_NOCTTY);
-      int writeFd = open([ptyPath UTF8String], O_WRONLY | O_NOCTTY);
-      NSLog(@"VZManager: readFd = %d, writeFd = %d", readFd, writeFd);
+      int rwFd = open([ptyPath UTF8String], O_RDWR | O_NOCTTY);
+      NSLog(@"VZManager: rwFd = %d", rwFd);
 
       NSFileHandle *readHandle = nil;
       NSFileHandle *writeHandle = nil;
 
-      if (readFd >= 0 && writeFd >= 0) {
-        /* Create separate file handles for reading and writing.
-         * Each uses its own file descriptor for proper full-duplex I/O.
-         */
-        readHandle = [[NSFileHandle alloc] initWithFileDescriptor:readFd
-                                                   closeOnDealloc:YES];
-        writeHandle = [[NSFileHandle alloc] initWithFileDescriptor:writeFd
-                                                    closeOnDealloc:YES];
-        NSLog(@"VZManager: readHandle = %@, writeHandle = %@",
-              readHandle ?: @"(nil)", writeHandle ?: @"(nil)");
+      if (rwFd >= 0) {
+        /* Duplicate the file descriptor for separate read/write handles */
+        int readFd = dup(rwFd);
+        int writeFd = dup(rwFd);
+        NSLog(@"VZManager: readFd = %d, writeFd = %d (from rwFd %d)", readFd, writeFd, rwFd);
+
+        if (readFd >= 0 && writeFd >= 0) {
+          /* Create file handles - readHandle takes ownership of readFd,
+           * writeHandle takes ownership of writeFd.
+           * We keep rwFd open separately to ensure the PTY stays connected.
+           */
+          readHandle = [[NSFileHandle alloc] initWithFileDescriptor:readFd
+                                                     closeOnDealloc:YES];
+          writeHandle = [[NSFileHandle alloc] initWithFileDescriptor:writeFd
+                                                      closeOnDealloc:YES];
+          /* Disable closeOnDealloc for rwFd - we'll close it manually */
+          NSLog(@"VZManager: readHandle = %@, writeHandle = %@",
+                readHandle ?: @"(nil)", writeHandle ?: @"(nil)");
+        } else {
+          if (readFd < 0) {
+            NSLog(@"VZManager: Failed to dup FD for reading: %s",
+                  strerror(errno));
+          }
+          if (writeFd < 0) {
+            NSLog(@"VZManager: Failed to dup FD for writing: %s",
+                  strerror(errno));
+          }
+          if (readFd >= 0)
+            close(readFd);
+          if (writeFd >= 0)
+            close(writeFd);
+        }
+        close(rwFd);
       } else {
-        if (readFd < 0) {
-          NSLog(@"VZManager: Failed to open PTY for reading: %s",
-                strerror(errno));
-        }
-        if (writeFd < 0) {
-          NSLog(@"VZManager: Failed to open PTY for writing: %s",
-                strerror(errno));
-        }
-        /* Clean up any successfully opened FD */
-        if (readFd >= 0)
-          close(readFd);
-        if (writeFd >= 0)
-          close(writeFd);
+        NSLog(@"VZManager: Failed to open PTY: %s", strerror(errno));
       }
 
       if (readHandle && writeHandle) {
@@ -265,8 +275,7 @@
           NSLog(@"VZManager: Failed to create serial port attachment");
         }
       } else {
-        NSLog(@"VZManager: Failed to open PTY file handles: %s",
-              strerror(errno));
+        NSLog(@"VZManager: Failed to create PTY file handles");
       }
     } else {
       /* No PTY path provided - create a null console for headless Linux VMs
