@@ -173,8 +173,7 @@ static const char *macosvfConnectGetType(virConnectPtr conn G_GNUC_UNUSED) {
   return "macosvf";
 }
 
-static int macosvfConnectGetVersion(virConnectPtr conn,
-                                    unsigned long *hvVer) {
+static int macosvfConnectGetVersion(virConnectPtr conn, unsigned long *hvVer) {
   struct utsname utsname;
   unsigned long long version;
 
@@ -263,14 +262,12 @@ struct macosvfListData {
   int count;
 };
 
-static int macosvfListCallback(virDomainObj *obj,
-                                void *opaque)
-{
+static int macosvfListCallback(virDomainObj *obj, void *opaque) {
   struct macosvfListData *data = opaque;
 
   virObjectLock(obj);
-  data->doms[data->count] = virGetDomain(data->conn, obj->def->name,
-                                          obj->def->uuid, -1);
+  data->doms[data->count] =
+      virGetDomain(data->conn, obj->def->name, obj->def->uuid, -1);
   virObjectUnlock(obj);
 
   if (!data->doms[data->count])
@@ -284,7 +281,7 @@ static int macosvfConnectListAllDomains(virConnectPtr conn,
                                         virDomainPtr **domains,
                                         unsigned int flags) {
   macosvfConn *privconn = conn->privateData;
-  struct macosvfListData data = { NULL, conn, 0 };
+  struct macosvfListData data = {NULL, conn, 0};
   int n = 0;
 
   VIR_WARN("macosvfConnectListAllDomains: Entry, flags=%u", flags);
@@ -306,9 +303,9 @@ static int macosvfConnectListAllDomains(virConnectPtr conn,
     return -1;
 
   VIR_WARN("macosvfConnectListAllDomains: Iterating domains");
-  /* Collect domain references - virDomainObjListForEach handles locking internally */
-  virDomainObjListForEach(privconn->domains, false,
-                         macosvfListCallback, &data);
+  /* Collect domain references - virDomainObjListForEach handles locking
+   * internally */
+  virDomainObjListForEach(privconn->domains, false, macosvfListCallback, &data);
 
   *domains = data.doms;
   VIR_WARN("macosvfConnectListAllDomains: Returning %d", data.count);
@@ -537,8 +534,7 @@ cleanup:
   return ret;
 }
 
-static char *macosvfDomainGetSchedulerType(virDomainPtr dom,
-                                           int *nparams) {
+static char *macosvfDomainGetSchedulerType(virDomainPtr dom, int *nparams) {
   virDomainObj *vm;
   char *ret = NULL;
 
@@ -1512,11 +1508,14 @@ static int macosvfDomainDestroyFlags(virDomainPtr dom, unsigned int flags) {
     goto cleanup;
   }
 
+  /* Forcefully stop and reset state even if the helper returns an error */
   ret = macosvfVMStop((macosvfVMObject *)priv->vm, true);
-  if (ret == 0) {
-    vm->def->id = -1; /* Reset domain ID */
-    virDomainObjSetState(vm, VIR_DOMAIN_SHUTOFF, VIR_DOMAIN_SHUTOFF_DESTROYED);
-  }
+
+  vm->def->id = -1; /* Reset domain ID */
+  virDomainObjSetState(vm, VIR_DOMAIN_SHUTOFF, VIR_DOMAIN_SHUTOFF_DESTROYED);
+  virResetLastError(); /* Clear any thread errors from macosvfVMStop so RPC
+                          succeeds */
+  ret = 0;
 
 cleanup:
   virDomainObjEndAPI(&vm);
@@ -1581,12 +1580,8 @@ cleanup:
   return ret;
 }
 
-static int
-macosvfDomainOpenConsole(virDomainPtr dom,
-                         const char *dev_name,
-                         virStreamPtr st,
-                         unsigned int flags)
-{
+static int macosvfDomainOpenConsole(virDomainPtr dom, const char *dev_name,
+                                    virStreamPtr st, unsigned int flags) {
   virDomainObj *vm = NULL;
   size_t i;
   virDomainChrDef *chr = NULL;
@@ -1611,8 +1606,7 @@ macosvfDomainOpenConsole(virDomainPtr dom,
 
   /* Check if domain is running */
   if (virDomainObjGetState(vm, NULL) != VIR_DOMAIN_RUNNING) {
-    virReportError(VIR_ERR_OPERATION_INVALID, "%s",
-                   _("domain is not running"));
+    virReportError(VIR_ERR_OPERATION_INVALID, "%s", _("domain is not running"));
     goto cleanup;
   }
 
@@ -1676,7 +1670,7 @@ macosvfDomainOpenConsole(virDomainPtr dom,
 
   ret = 0;
 
- cleanup:
+cleanup:
   virDomainObjEndAPI(&vm);
   return ret;
 }
@@ -1729,7 +1723,8 @@ static virDomainPtr macosvfDomainCreateXML(virConnectPtr conn, const char *xml,
   VIR_DEBUG("macosvfDomainCreateXML: Allocated domain ID %d", vm->def->id);
 
   /* Start the VM if not paused */
-  VIR_DEBUG("macosvfDomainCreateXML: flags=%u, VIR_DOMAIN_START_PAUSED=%u", flags, VIR_DOMAIN_START_PAUSED);
+  VIR_DEBUG("macosvfDomainCreateXML: flags=%u, VIR_DOMAIN_START_PAUSED=%u",
+            flags, VIR_DOMAIN_START_PAUSED);
   if (!(flags & VIR_DOMAIN_START_PAUSED)) {
     VIR_DEBUG("macosvfDomainCreateXML: Calling macosvfVMStart");
     if (macosvfVMStart(vmobj) < 0) {
@@ -2106,7 +2101,7 @@ macosvfStateInitialize(bool privileged, const char *root,
 
           if (!(vm = virDomainObjListAdd(driver->domains, &def, driver->xmlopt,
                                          VIR_DOMAIN_OBJ_LIST_ADD_LIVE |
-                                         VIR_DOMAIN_OBJ_LIST_ADD_CHECK_LIVE,
+                                             VIR_DOMAIN_OBJ_LIST_ADD_CHECK_LIVE,
                                          NULL)))
             continue;
 

@@ -12,226 +12,260 @@
 @implementation VZXPCService
 
 - (instancetype)init {
-    self = [super init];
-    if (self) {
-        _vzManager = [VZManager sharedManager];
-    }
-    return self;
+  self = [super init];
+  if (self) {
+    _vzManager = [VZManager sharedManager];
+  }
+  return self;
 }
 
 - (void)startWithMachPortName:(NSString *)machPortName {
-    NSLog(@"VZXPCService: Starting with Mach port %@", machPortName);
+  NSLog(@"VZXPCService: Starting with Mach port %@", machPortName);
 
-    /* When running via launchd with MachServices, the Mach port is already
-     * registered by launchd. We just need to create the NSXPCListener.
-     */
+  /* When running via launchd with MachServices, the Mach port is already
+   * registered by launchd. We just need to create the NSXPCListener.
+   */
 
-    self.listener = [[NSXPCListener alloc] initWithMachServiceName:machPortName];
-    self.listener.delegate = self;
+  self.listener = [[NSXPCListener alloc] initWithMachServiceName:machPortName];
+  self.listener.delegate = self;
 
-    NSLog(@"VZXPCService: Created listener, resuming...");
-    [self.listener resume];
+  NSLog(@"VZXPCService: Created listener, resuming...");
+  [self.listener resume];
 
-    NSLog(@"VZXPCService: Listening on Mach port %@", machPortName);
+  NSLog(@"VZXPCService: Listening on Mach port %@", machPortName);
 }
 
 - (void)stop {
-    [self.listener suspend];
+  [self.listener suspend];
 }
 
 #pragma mark - VZXPCProtocol Implementation
 
 - (void)createVMWithId:(NSString *)vmId
                 config:(NSDictionary *)config
-                 reply:(void (^)(BOOL success, NSError * _Nullable error))reply {
+                 reply:(void (^)(BOOL success, NSError *_Nullable error))reply {
 
-    NSLog(@"VZXPCService: createVMWithId %@", vmId);
+  NSLog(@"VZXPCService: createVMWithId %@", vmId);
 
-    __block BOOL result = NO;
-    __block NSError *error = nil;
+  __block BOOL result = NO;
+  __block NSError *error = nil;
 
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+  dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
-    [self.vzManager createVMWithId:vmId config:config completion:^(BOOL success, NSError * _Nullable err) {
-        result = success;
-        error = err;
-        dispatch_semaphore_signal(sem);
-    }];
+  [self.vzManager createVMWithId:vmId
+                          config:config
+                      completion:^(BOOL success, NSError *_Nullable err) {
+                        result = success;
+                        error = err;
+                        dispatch_semaphore_signal(sem);
+                      }];
 
-    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+  dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
 
-    reply(result, error);
+  reply(result, error);
 }
 
 - (void)startVMWithId:(NSString *)vmId
-                reply:(void (^)(BOOL success, NSError * _Nullable error))reply {
+                reply:(void (^)(BOOL success, NSError *_Nullable error))reply {
 
-    NSLog(@"VZXPCService: startVMWithId %@", vmId);
+  NSLog(@"VZXPCService: startVMWithId %@", vmId);
 
-    __block BOOL result = NO;
-    __block NSError *error = nil;
+  __block BOOL result = NO;
+  __block NSError *error = nil;
 
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+  dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
-    /* VZVirtualMachine start must be called from main queue */
-    if ([NSThread isMainThread]) {
-        /* Already on main thread - call directly */
-        [self.vzManager startVMWithId:vmId completion:^(BOOL success, NSError * _Nullable err) {
-            result = success;
-            error = err;
-            dispatch_semaphore_signal(sem);
-        }];
-    } else {
-        /* Dispatch to main queue */
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self.vzManager startVMWithId:vmId completion:^(BOOL success, NSError * _Nullable err) {
-                result = success;
-                error = err;
-                dispatch_semaphore_signal(sem);
-            }];
-        });
-    }
+  /* VZVirtualMachine start must be called from main queue */
+  if ([NSThread isMainThread]) {
+    /* Already on main thread - call directly */
+    [self.vzManager startVMWithId:vmId
+                       completion:^(BOOL success, NSError *_Nullable err) {
+                         result = success;
+                         error = err;
+                         dispatch_semaphore_signal(sem);
+                       }];
+  } else {
+    /* Dispatch to main queue */
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self.vzManager startVMWithId:vmId
+                         completion:^(BOOL success, NSError *_Nullable err) {
+                           result = success;
+                           error = err;
+                           dispatch_semaphore_signal(sem);
+                         }];
+    });
+  }
 
-    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-    reply(result, error);
+  dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+  reply(result, error);
 }
 
 - (void)stopVMWithId:(NSString *)vmId
-               reply:(void (^)(BOOL success, NSError * _Nullable error))reply {
+               reply:(void (^)(BOOL success, NSError *_Nullable error))reply {
 
-    NSLog(@"VZXPCService: stopVMWithId %@", vmId);
+  NSLog(@"VZXPCService: stopVMWithId %@", vmId);
 
-    __block BOOL result = NO;
-    __block NSError *error = nil;
+  __block BOOL result = NO;
+  __block NSError *error = nil;
 
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+  dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
-    /* VZVirtualMachine stop must be called from main queue */
-    if ([NSThread isMainThread]) {
-        [self.vzManager stopVMWithId:vmId completion:^(BOOL success, NSError * _Nullable err) {
-            result = success;
-            error = err;
-            dispatch_semaphore_signal(sem);
-        }];
-    } else {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self.vzManager stopVMWithId:vmId completion:^(BOOL success, NSError * _Nullable err) {
-                result = success;
-                error = err;
-                dispatch_semaphore_signal(sem);
-            }];
-        });
-    }
+  /* VZVirtualMachine stop must be called from main queue */
+  if ([NSThread isMainThread]) {
+    [self.vzManager stopVMWithId:vmId
+                      completion:^(BOOL success, NSError *_Nullable err) {
+                        result = success;
+                        error = err;
+                        dispatch_semaphore_signal(sem);
+                      }];
+  } else {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self.vzManager stopVMWithId:vmId
+                        completion:^(BOOL success, NSError *_Nullable err) {
+                          result = success;
+                          error = err;
+                          dispatch_semaphore_signal(sem);
+                        }];
+    });
+  }
 
-    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-    reply(result, error);
+  dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+  reply(result, error);
 }
 
 - (void)pauseVMWithId:(NSString *)vmId
-                reply:(void (^)(BOOL success, NSError * _Nullable error))reply {
+                reply:(void (^)(BOOL success, NSError *_Nullable error))reply {
 
-    NSLog(@"VZXPCService: pauseVMWithId %@", vmId);
+  NSLog(@"VZXPCService: pauseVMWithId %@", vmId);
 
-    __block BOOL result = NO;
-    __block NSError *error = nil;
+  __block BOOL result = NO;
+  __block NSError *error = nil;
 
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+  dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
-    /* VZVirtualMachine pause must be called from main queue */
-    if ([NSThread isMainThread]) {
-        [self.vzManager pauseVMWithId:vmId completion:^(BOOL success, NSError * _Nullable err) {
-            result = success;
-            error = err;
-            dispatch_semaphore_signal(sem);
-        }];
-    } else {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self.vzManager pauseVMWithId:vmId completion:^(BOOL success, NSError * _Nullable err) {
-                result = success;
-                error = err;
-                dispatch_semaphore_signal(sem);
-            }];
-        });
-    }
+  /* VZVirtualMachine pause must be called from main queue */
+  if ([NSThread isMainThread]) {
+    [self.vzManager pauseVMWithId:vmId
+                       completion:^(BOOL success, NSError *_Nullable err) {
+                         result = success;
+                         error = err;
+                         dispatch_semaphore_signal(sem);
+                       }];
+  } else {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self.vzManager pauseVMWithId:vmId
+                         completion:^(BOOL success, NSError *_Nullable err) {
+                           result = success;
+                           error = err;
+                           dispatch_semaphore_signal(sem);
+                         }];
+    });
+  }
 
-    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-    reply(result, error);
+  dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+  reply(result, error);
 }
 
 - (void)resumeVMWithId:(NSString *)vmId
-                 reply:(void (^)(BOOL success, NSError * _Nullable error))reply {
+                 reply:(void (^)(BOOL success, NSError *_Nullable error))reply {
 
-    NSLog(@"VZXPCService: resumeVMWithId %@", vmId);
+  NSLog(@"VZXPCService: resumeVMWithId %@", vmId);
 
-    __block BOOL result = NO;
-    __block NSError *error = nil;
+  __block BOOL result = NO;
+  __block NSError *error = nil;
 
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+  dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
-    /* VZVirtualMachine resume must be called from main queue */
-    if ([NSThread isMainThread]) {
-        [self.vzManager resumeVMWithId:vmId completion:^(BOOL success, NSError * _Nullable err) {
-            result = success;
-            error = err;
-            dispatch_semaphore_signal(sem);
-        }];
-    } else {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self.vzManager resumeVMWithId:vmId completion:^(BOOL success, NSError * _Nullable err) {
-                result = success;
-                error = err;
-                dispatch_semaphore_signal(sem);
-            }];
-        });
-    }
+  /* VZVirtualMachine resume must be called from main queue */
+  if ([NSThread isMainThread]) {
+    [self.vzManager resumeVMWithId:vmId
+                        completion:^(BOOL success, NSError *_Nullable err) {
+                          result = success;
+                          error = err;
+                          dispatch_semaphore_signal(sem);
+                        }];
+  } else {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self.vzManager resumeVMWithId:vmId
+                          completion:^(BOOL success, NSError *_Nullable err) {
+                            result = success;
+                            error = err;
+                            dispatch_semaphore_signal(sem);
+                          }];
+    });
+  }
 
-    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-    reply(result, error);
+  dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+  reply(result, error);
 }
 
 - (void)getStateForVMWithId:(NSString *)vmId
-                      reply:(void (^)(NSInteger state, NSError * _Nullable error))reply {
+                      reply:(void (^)(NSInteger state,
+                                      NSError *_Nullable error))reply {
 
-    [self.vzManager getStateForVMWithId:vmId completion:^(VZManagerVMState state, NSError * _Nullable error) {
-        reply((NSInteger)state, error);
-    }];
+  [self.vzManager
+      getStateForVMWithId:vmId
+               completion:^(VZManagerVMState state, NSError *_Nullable error) {
+                 reply((NSInteger)state, error);
+               }];
 }
 
 - (void)getConsolePathForVMWithId:(NSString *)vmId
-                            reply:(void (^)(NSString * _Nullable path, NSError * _Nullable error))reply {
+                            reply:(void (^)(NSString *_Nullable path,
+                                            NSError *_Nullable error))reply {
 
-    [self.vzManager getConsolePathForVMWithId:vmId completion:reply];
+  [self.vzManager getConsolePathForVMWithId:vmId completion:reply];
 }
 
-- (void)listVMsWithReply:(void (^)(NSArray *vmIds, NSError * _Nullable error))reply {
+- (void)listVMsWithReply:(void (^)(NSArray *vmIds,
+                                   NSError *_Nullable error))reply {
 
-    NSArray *vmIds = [self.vzManager.virtualMachines allKeys];
-    reply(vmIds, nil);
+  NSArray *vmIds = [self.vzManager.virtualMachines allKeys];
+  reply(vmIds, nil);
 }
 
 - (void)destroyVMWithId:(NSString *)vmId
-                  reply:(void (^)(BOOL success, NSError * _Nullable error))reply {
+                  reply:
+                      (void (^)(BOOL success, NSError *_Nullable error))reply {
 
-    NSLog(@"VZXPCService: destroyVMWithId %@", vmId);
+  NSLog(@"VZXPCService: destroyVMWithId %@", vmId);
 
-    /* Get the mutable copy of virtualMachines and remove the key */
-    NSMutableDictionary *vms = [self.vzManager valueForKey:@"_virtualMachines"];
-    if (vms) {
-        [vms removeObjectForKey:vmId];
+  /* Get the mutable copy of virtualMachines and remove the key */
+  NSMutableDictionary *vms = [self.vzManager valueForKey:@"_virtualMachines"];
+  if (vms) {
+    [vms removeObjectForKey:vmId];
+  }
+
+  /* Also clear console path */
+  NSMutableDictionary *paths = [self.vzManager valueForKey:@"_consolePaths"];
+  if (paths) {
+    [paths removeObjectForKey:vmId];
+  }
+
+  /* Clear and close window if it exists */
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NSMutableDictionary *windows = [self.vzManager valueForKey:@"_windows"];
+    if (windows) {
+      NSWindow *window = windows[vmId];
+      if (window) {
+        [window close];
+        [windows removeObjectForKey:vmId];
+      }
     }
 
-    /* Also clear console path */
-    NSMutableDictionary *paths = [self.vzManager valueForKey:@"_consolePaths"];
-    if (paths) {
-        [paths removeObjectForKey:vmId];
+    NSMutableDictionary *displayEnabled =
+        [self.vzManager valueForKey:@"_displayEnabled"];
+    if (displayEnabled) {
+      [displayEnabled removeObjectForKey:vmId];
     }
+  });
 
-    reply(YES, nil);
+  reply(YES, nil);
 }
 
 - (void)pingWithReply:(void (^)(NSString *pong))reply {
 
-    reply(@"pong");
+  reply(@"pong");
 }
 
 @end
@@ -240,15 +274,17 @@
 
 @implementation VZXPCService (NSXPCListenerDelegate)
 
-- (BOOL)listener:(NSXPCListener *)listener shouldAcceptNewConnection:(NSXPCConnection *)newConnection {
+- (BOOL)listener:(NSXPCListener *)listener
+    shouldAcceptNewConnection:(NSXPCConnection *)newConnection {
 
-    NSLog(@"VZXPCService: Accepting new XPC connection");
+  NSLog(@"VZXPCService: Accepting new XPC connection");
 
-    newConnection.exportedInterface = [NSXPCInterface interfaceWithProtocol:@protocol(VZXPCProtocol)];
-    newConnection.exportedObject = self;
-    [newConnection resume];
+  newConnection.exportedInterface =
+      [NSXPCInterface interfaceWithProtocol:@protocol(VZXPCProtocol)];
+  newConnection.exportedObject = self;
+  [newConnection resume];
 
-    return YES;
+  return YES;
 }
 
 @end

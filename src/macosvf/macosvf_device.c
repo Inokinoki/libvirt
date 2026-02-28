@@ -457,13 +457,8 @@ macosvfDomainGraphicsDefValidate(const virDomainGraphicsDef *graphics) {
     return -1;
 
   case VIR_DOMAIN_GRAPHICS_TYPE_DESKTOP:
-    virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
-                   _("Desktop graphics are not supported by macOS "
-                     "Virtualization.Framework. "
-                     "The framework provides native graphics output. "
-                     "Remove the <graphics type='desktop'> element from your "
-                     "configuration."));
-    return -1;
+    /* We now support desktop graphics for VZVirtualMachineView local display */
+    return 0;
 
   case VIR_DOMAIN_GRAPHICS_TYPE_SDL:
     virReportError(
@@ -649,9 +644,7 @@ static int macosvfDomainInputDefValidate(const virDomainInputDef *input) {
 }
 
 /* Validate RNG (random number generator) device */
-static int
-macosvfDomainRNGDefValidate(const virDomainRNGDef *rng)
-{
+static int macosvfDomainRNGDefValidate(const virDomainRNGDef *rng) {
   /* macOS Virtualization.Framework supports virtio RNG devices
    * through VZVirtioEntropyDeviceConfiguration
    * The framework provides entropy from the host to the guest
@@ -681,28 +674,31 @@ macosvfDomainRNGDefValidate(const virDomainRNGDef *rng)
   case VIR_DOMAIN_RNG_BACKEND_RANDOM:
     /* /dev/random, /dev/urandom, and similar devices are supported */
     if (!rng->source.file) {
-      virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
-                     _("RNG device with 'random' backend requires a source file. "
-                       "Specify <backend model='random'>/dev/urandom</backend> "
-                       "or similar."));
+      virReportError(
+          VIR_ERR_CONFIG_UNSUPPORTED,
+          _("RNG device with 'random' backend requires a source file. "
+            "Specify <backend model='random'>/dev/urandom</backend> "
+            "or similar."));
       return -1;
     }
     break;
 
   case VIR_DOMAIN_RNG_BACKEND_EGD:
     /* EGD (Entropy Gathering Daemon) protocol is not supported */
-    virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
-                   _("EGD protocol backend is not supported by macOS "
-                     "Virtualization.Framework. "
-                     "Use <backend model='random'>/dev/urandom</backend> instead."));
+    virReportError(
+        VIR_ERR_CONFIG_UNSUPPORTED,
+        _("EGD protocol backend is not supported by macOS "
+          "Virtualization.Framework. "
+          "Use <backend model='random'>/dev/urandom</backend> instead."));
     return -1;
 
   case VIR_DOMAIN_RNG_BACKEND_BUILTIN:
     /* Builtin backend is not applicable for virtio-rng */
-    virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
-                   _("Builtin RNG backend is not supported by macOS "
-                     "Virtualization.Framework. "
-                     "Use <backend model='random'>/dev/urandom</backend> instead."));
+    virReportError(
+        VIR_ERR_CONFIG_UNSUPPORTED,
+        _("Builtin RNG backend is not supported by macOS "
+          "Virtualization.Framework. "
+          "Use <backend model='random'>/dev/urandom</backend> instead."));
     return -1;
 
   case VIR_DOMAIN_RNG_BACKEND_LAST:

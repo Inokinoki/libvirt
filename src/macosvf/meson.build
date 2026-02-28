@@ -25,6 +25,7 @@ if conf.has('WITH_MACOSVF')
     command: [
       clang,
       '-c', '-x', 'objective-c', '-fobjc-arc',
+      '-I' + meson.project_source_root(),
       '-I' + meson.project_source_root() / 'src',
       '-I' + meson.project_build_root() / 'include',
       '-I' + meson.project_source_root() / 'include',
@@ -35,6 +36,7 @@ if conf.has('WITH_MACOSVF')
       '-I' + meson.project_source_root() / 'src' / 'util',
       '-I' + meson.project_build_root() / 'src',
       '-I' + meson.project_build_root(),
+      '-I' + meson.project_build_root() / 'src' / 'macosvf',
       '-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0',
       '-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include',
       '-framework', 'Cocoa',
@@ -53,6 +55,7 @@ if conf.has('WITH_MACOSVF')
     command: [
       clang,
       '-c', '-x', 'objective-c', '-fobjc-arc',
+      '-I' + meson.project_source_root(),
       '-I' + meson.project_source_root() / 'src',
       '-I' + meson.project_build_root() / 'include',
       '-I' + meson.project_source_root() / 'include',
@@ -63,6 +66,7 @@ if conf.has('WITH_MACOSVF')
       '-I' + meson.project_source_root() / 'src' / 'util',
       '-I' + meson.project_build_root() / 'src',
       '-I' + meson.project_build_root(),
+      '-I' + meson.project_build_root() / 'src' / 'macosvf',
       '-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0',
       '-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include',
       '-framework', 'Cocoa',

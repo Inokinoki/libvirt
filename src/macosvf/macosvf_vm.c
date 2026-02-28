@@ -25,8 +25,8 @@
 
 #include "domain_conf.h"
 #include "macosvf_domain.h"
-#include "macosvf_vm.h"
 #include "macosvf_helper_client.h"
+#include "macosvf_vm.h"
 #include "viralloc.h"
 #include "virerror.h"
 #include "virlog.h"
@@ -44,7 +44,7 @@ struct _macosvfVMObject {
   virDomainDef *domainDef;
   macosvfVMState state;
   char *consolePath;
-  int consoleMasterFd;  /* Master FD for PTY console */
+  int consoleMasterFd; /* Master FD for PTY console */
 
   /* Statistics tracking */
   uint64_t cpuTimeAccumulated;
@@ -125,7 +125,8 @@ int macosvfVMCreate(virDomainDef *def, macosvfVMObject **vmptr) {
   /* Get or create the helper client */
   vm->helper = macosvfHelperClientGet();
   if (!vm->helper) {
-    virReportError(VIR_ERR_INTERNAL_ERROR, "%s", _("Failed to get helper client"));
+    virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                   _("Failed to get helper client"));
     VIR_FREE(vm->vmId);
     g_free(vm);
     return -1;
@@ -133,7 +134,8 @@ int macosvfVMCreate(virDomainDef *def, macosvfVMObject **vmptr) {
 
   /* Initialize the helper if this is the first client */
   if (macosvfHelperClientInit(vm->helper) < 0) {
-    virReportError(VIR_ERR_INTERNAL_ERROR, "%s", _("Failed to initialize helper client"));
+    virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+                   _("Failed to initialize helper client"));
     VIR_FREE(vm->vmId);
     g_free(vm);
     return -1;
@@ -168,12 +170,15 @@ int macosvfVMCreate(virDomainDef *def, macosvfVMObject **vmptr) {
 
     /* Store PTY path in domain definition for both serial and console */
     def->serials[0]->source->data.file.path = g_strdup(ptspath);
-    VIR_INFO("Stored PTY path '%s' in serial[0] for domain '%s'", ptspath, def->name);
+    VIR_INFO("Stored PTY path '%s' in serial[0] for domain '%s'", ptspath,
+             def->name);
 
     /* Also set console path if console device exists */
-    if (def->nconsoles > 0 && def->consoles[0]->source->type == VIR_DOMAIN_CHR_TYPE_PTY) {
-        def->consoles[0]->source->data.file.path = g_strdup(ptspath);
-        VIR_INFO("Stored PTY path '%s' in console[0] for domain '%s'", ptspath, def->name);
+    if (def->nconsoles > 0 &&
+        def->consoles[0]->source->type == VIR_DOMAIN_CHR_TYPE_PTY) {
+      def->consoles[0]->source->data.file.path = g_strdup(ptspath);
+      VIR_INFO("Stored PTY path '%s' in console[0] for domain '%s'", ptspath,
+               def->name);
     }
 
     /* Also store for console access */
@@ -191,8 +196,9 @@ int macosvfVMCreate(virDomainDef *def, macosvfVMObject **vmptr) {
   if (config.cpuCount == 0)
     config.cpuCount = 1;
 
-  config.memorySize = virDomainDefGetMemoryTotal(def) * 1024; /* Convert to bytes */
-  config.useNetwork = 1; /* Enable network by default */
+  config.memorySize =
+      virDomainDefGetMemoryTotal(def) * 1024; /* Convert to bytes */
+  config.useNetwork = 1;                      /* Enable network by default */
 
   /* Set kernel path if defined */
   if (def->os.kernel)
@@ -212,21 +218,30 @@ int macosvfVMCreate(virDomainDef *def, macosvfVMObject **vmptr) {
 
   /* Parse port forwarding from network interfaces */
   config.numPortForwards = 0;
-  for (size_t i = 0; i < def->nnets && config.numPortForwards < MACOSVF_MAX_PORT_FORWARDS; i++) {
+  for (size_t i = 0;
+       i < def->nnets && config.numPortForwards < MACOSVF_MAX_PORT_FORWARDS;
+       i++) {
     virDomainNetDef *net = def->nets[i];
     if (net->type == VIR_DOMAIN_NET_TYPE_USER) {
       /* User mode networking - check for port forward rules */
-      for (size_t j = 0; j < net->nPortForwards && config.numPortForwards < MACOSVF_MAX_PORT_FORWARDS; j++) {
+      for (size_t j = 0; j < net->nPortForwards &&
+                         config.numPortForwards < MACOSVF_MAX_PORT_FORWARDS;
+           j++) {
         virDomainNetPortForward *pf = net->portForwards[j];
         /* Parse port ranges */
-        for (size_t k = 0; k < pf->nRanges && config.numPortForwards < MACOSVF_MAX_PORT_FORWARDS; k++) {
+        for (size_t k = 0; k < pf->nRanges &&
+                           config.numPortForwards < MACOSVF_MAX_PORT_FORWARDS;
+             k++) {
           virDomainNetPortForwardRange *range = pf->ranges[k];
           config.portForwards[config.numPortForwards].hostPort = range->start;
-          config.portForwards[config.numPortForwards].guestPort = range->to > 0 ? range->to : range->start;
-          config.portForwards[config.numPortForwards].protocol = pf->proto == VIR_DOMAIN_NET_PROTO_UDP ? 1 : 0;
+          config.portForwards[config.numPortForwards].guestPort =
+              range->to > 0 ? range->to : range->start;
+          config.portForwards[config.numPortForwards].protocol =
+              pf->proto == VIR_DOMAIN_NET_PROTO_UDP ? 1 : 0;
           config.numPortForwards++;
           VIR_DEBUG("Added port forward: host=%d guest=%d proto=%s",
-                    range->start, config.portForwards[config.numPortForwards-1].guestPort,
+                    range->start,
+                    config.portForwards[config.numPortForwards - 1].guestPort,
                     pf->proto == VIR_DOMAIN_NET_PROTO_UDP ? "UDP" : "TCP");
         }
       }
@@ -235,10 +250,20 @@ int macosvfVMCreate(virDomainDef *def, macosvfVMObject **vmptr) {
 
   /* Add disk paths */
   config.numDisks = 0;
-  for (size_t i = 0; i < def->ndisks && config.numDisks < MACOSVF_MAX_DISKS; i++) {
+  for (size_t i = 0; i < def->ndisks && config.numDisks < MACOSVF_MAX_DISKS;
+       i++) {
     virDomainDiskDef *disk = def->disks[i];
     if (disk->src && disk->src->path) {
       config.diskPaths[config.numDisks++] = disk->src->path;
+    }
+  }
+
+  /* Check for desktop graphics */
+  config.enableDisplay = false;
+  for (size_t i = 0; i < def->ngraphics; i++) {
+    if (def->graphics[i]->type == VIR_DOMAIN_GRAPHICS_TYPE_DESKTOP) {
+      config.enableDisplay = true;
+      break;
     }
   }
 
@@ -354,19 +379,19 @@ macosvfVMState macosvfVMGetState(macosvfVMObject *vm) {
 
   /* Translate helper state to our state */
   switch (helperState) {
-    case MACOSVF_HELPER_VM_STATE_UNKNOWN:
-    case MACOSVF_HELPER_VM_STATE_STOPPED:
-      return MACOSVF_VM_STATE_STOPPED;
-    case MACOSVF_HELPER_VM_STATE_RUNNING:
-      return MACOSVF_VM_STATE_RUNNING;
-    case MACOSVF_HELPER_VM_STATE_PAUSED:
-      return MACOSVF_VM_STATE_PAUSED;
-    case MACOSVF_HELPER_VM_STATE_ERROR:
-      return MACOSVF_VM_STATE_ERROR;
-    case MACOSVF_HELPER_VM_STATE_STARTING:
-    case MACOSVF_HELPER_VM_STATE_STOPPING:
-    default:
-      return MACOSVF_VM_STATE_RUNNING; /* Transitional states */
+  case MACOSVF_HELPER_VM_STATE_UNKNOWN:
+  case MACOSVF_HELPER_VM_STATE_STOPPED:
+    return MACOSVF_VM_STATE_STOPPED;
+  case MACOSVF_HELPER_VM_STATE_RUNNING:
+    return MACOSVF_VM_STATE_RUNNING;
+  case MACOSVF_HELPER_VM_STATE_PAUSED:
+    return MACOSVF_VM_STATE_PAUSED;
+  case MACOSVF_HELPER_VM_STATE_ERROR:
+    return MACOSVF_VM_STATE_ERROR;
+  case MACOSVF_HELPER_VM_STATE_STARTING:
+  case MACOSVF_HELPER_VM_STATE_STOPPING:
+  default:
+    return MACOSVF_VM_STATE_RUNNING; /* Transitional states */
   }
 }
 

@@ -3,18 +3,22 @@
  */
 
 #import "VZManager.h"
+#import <AppKit/AppKit.h>
+#import <Virtualization/VZGenericMachineIdentifier.h>
+#import <Virtualization/VZGenericPlatformConfiguration.h>
+#import <Virtualization/VZVirtualMachineView.h>
 #import <errno.h>
 #import <fcntl.h>
 #import <string.h>
 #import <unistd.h>
-#import <Virtualization/VZGenericPlatformConfiguration.h>
-#import <Virtualization/VZGenericMachineIdentifier.h>
 
 @interface VZManager () {
   NSMutableDictionary<NSString *, VZVirtualMachine *> *_virtualMachines;
   NSMutableDictionary<NSString *, VZVirtualMachineConfiguration *>
       *_configurations;
   NSMutableDictionary<NSString *, NSString *> *_consolePaths;
+  NSMutableDictionary<NSString *, NSWindow *> *_windows;
+  NSMutableDictionary<NSString *, NSNumber *> *_displayEnabled;
 }
 @end
 
@@ -35,6 +39,8 @@
     _virtualMachines = [NSMutableDictionary dictionary];
     _configurations = [NSMutableDictionary dictionary];
     _consolePaths = [NSMutableDictionary dictionary];
+    _windows = [NSMutableDictionary dictionary];
+    _displayEnabled = [NSMutableDictionary dictionary];
   }
   return self;
 }
@@ -90,10 +96,13 @@
         [[VZGenericPlatformConfiguration alloc] init];
     /* Set a unique machine identifier for ARM64 */
     if (@available(macOS 13.0, *)) {
-      platformConfig.machineIdentifier = [[VZGenericMachineIdentifier alloc] init];
-      NSLog(@"VZManager: Using GenericPlatformConfiguration with machine identifier for ARM64");
+      platformConfig.machineIdentifier =
+          [[VZGenericMachineIdentifier alloc] init];
+      NSLog(@"VZManager: Using GenericPlatformConfiguration with machine "
+            @"identifier for ARM64");
     } else {
-      NSLog(@"VZManager: Using GenericPlatformConfiguration for ARM64 (no machine identifier on macOS < 13.0)");
+      NSLog(@"VZManager: Using GenericPlatformConfiguration for ARM64 (no "
+            @"machine identifier on macOS < 13.0)");
     }
     vzConfig.platform = platformConfig;
 #else
@@ -224,7 +233,8 @@
         /* Duplicate the file descriptor for separate read/write handles */
         int readFd = dup(rwFd);
         int writeFd = dup(rwFd);
-        NSLog(@"VZManager: readFd = %d, writeFd = %d (from rwFd %d)", readFd, writeFd, rwFd);
+        NSLog(@"VZManager: readFd = %d, writeFd = %d (from rwFd %d)", readFd,
+              writeFd, rwFd);
 
         if (readFd >= 0 && writeFd >= 0) {
           /* Create file handles - readHandle takes ownership of readFd,
@@ -287,8 +297,10 @@
       /* Use a null attachment - data written is discarded */
       VZFileHandleSerialPortAttachment *nullAttachment =
           [[VZFileHandleSerialPortAttachment alloc]
-              initWithFileHandleForReading:[NSFileHandle fileHandleWithStandardInput]
-                      fileHandleForWriting:[NSFileHandle fileHandleWithStandardOutput]];
+              initWithFileHandleForReading:[NSFileHandle
+                                               fileHandleWithStandardInput]
+                      fileHandleForWriting:[NSFileHandle
+                                               fileHandleWithStandardOutput]];
       consoleConfig.attachment = nullAttachment;
       [serialPorts addObject:consoleConfig];
       NSLog(@"VZManager: Null console configured for headless VM");
@@ -315,32 +327,42 @@
 
     /* Configure graphics, keyboard, and pointing devices for ARM64 Linux */
 #if defined(__arm64__)
-    /* Configure graphics device with scanout */
-    VZVirtioGraphicsDeviceConfiguration *graphicsConfig =
-        [[VZVirtioGraphicsDeviceConfiguration alloc] init];
+    /* Check if display is enabled */
+    NSNumber *enableDisplayObj = config[@"enableDisplay"];
+    BOOL enableDisplay = enableDisplayObj ? [enableDisplayObj boolValue] : NO;
 
-    /* Add a scanout (display) configuration */
-    VZVirtioGraphicsScanoutConfiguration *scanoutConfig =
-        [[VZVirtioGraphicsScanoutConfiguration alloc]
-            initWithWidthInPixels:1024 heightInPixels:768];
-    graphicsConfig.scanouts = @[ scanoutConfig ];
+    if (enableDisplay) {
+      /* Configure graphics device with scanout for display output */
+      VZVirtioGraphicsDeviceConfiguration *graphicsConfig =
+          [[VZVirtioGraphicsDeviceConfiguration alloc] init];
 
-    vzConfig.graphicsDevices = @[ graphicsConfig ];
-    NSLog(@"VZManager: Graphics device with scanout configured");
+      /* Add a scanout (display) configuration */
+      VZVirtioGraphicsScanoutConfiguration *scanoutConfig =
+          [[VZVirtioGraphicsScanoutConfiguration alloc]
+              initWithWidthInPixels:1024
+                     heightInPixels:768];
+      graphicsConfig.scanouts = @[ scanoutConfig ];
 
-    /* Configure keyboard */
-    VZUSBKeyboardConfiguration *keyboardConfig =
-        [[VZUSBKeyboardConfiguration alloc] init];
-    vzConfig.keyboards = @[ keyboardConfig ];
-    NSLog(@"VZManager: Keyboard configured");
+      vzConfig.graphicsDevices = @[ graphicsConfig ];
+      NSLog(@"VZManager: Graphics device with scanout configured for display");
 
-    /* Configure pointing device (mouse) */
-    VZUSBScreenCoordinatePointingDeviceConfiguration *pointingConfig =
-        [[VZUSBScreenCoordinatePointingDeviceConfiguration alloc] init];
-    vzConfig.pointingDevices = @[ pointingConfig ];
-    NSLog(@"VZManager: Pointing device configured");
+      /* Configure keyboard */
+      VZUSBKeyboardConfiguration *keyboardConfig =
+          [[VZUSBKeyboardConfiguration alloc] init];
+      vzConfig.keyboards = @[ keyboardConfig ];
+      NSLog(@"VZManager: Keyboard configured");
 
-    /* Configure entropy device for Linux VMs */
+      /* Configure pointing device (mouse) */
+      VZUSBScreenCoordinatePointingDeviceConfiguration *pointingConfig =
+          [[VZUSBScreenCoordinatePointingDeviceConfiguration alloc] init];
+      vzConfig.pointingDevices = @[ pointingConfig ];
+      NSLog(@"VZManager: Pointing device configured");
+    } else {
+      /* Headless mode - no graphics, keyboard, or pointing devices */
+      NSLog(@"VZManager: Running in headless mode, skipping graphics devices");
+    }
+
+    /* Configure entropy device for Linux VMs (always) */
     VZVirtioEntropyDeviceConfiguration *entropyConfig =
         [[VZVirtioEntropyDeviceConfiguration alloc] init];
     vzConfig.entropyDevices = @[ entropyConfig ];
@@ -469,27 +491,45 @@
 
     /* Log detailed VM configuration to both NSLog and file */
     NSMutableString *configLog = [NSMutableString
-        stringWithFormat:@"\n===== VZManager: VM %@ configuration details =====\n", vmId];
-    [configLog appendFormat:@"VZManager: VM CPU count: %lu\n", (unsigned long)vzConfig.CPUCount];
-    [configLog appendFormat:@"VZManager: VM memory size: %llu bytes\n", vzConfig.memorySize];
-    [configLog appendFormat:@"VZManager: VM platform type: %@\n", NSStringFromClass([vzConfig.platform class])];
-    [configLog appendFormat:@"VZManager: VM boot loader type: %@\n", NSStringFromClass([vzConfig.bootLoader class])];
-    [configLog appendFormat:@"VZManager: VM graphics devices: %lu\n", (unsigned long)vzConfig.graphicsDevices.count];
-    [configLog appendFormat:@"VZManager: VM network devices: %lu\n", (unsigned long)vzConfig.networkDevices.count];
-    [configLog appendFormat:@"VZManager: VM storage devices: %lu\n", (unsigned long)vzConfig.storageDevices.count];
-    [configLog appendFormat:@"VZManager: VM serial ports: %lu\n", (unsigned long)vzConfig.serialPorts.count];
-    [configLog appendFormat:@"VZManager: VM keyboards: %lu\n", (unsigned long)vzConfig.keyboards.count];
-    [configLog appendFormat:@"VZManager: VM pointing devices: %lu\n", (unsigned long)vzConfig.pointingDevices.count];
-    [configLog appendFormat:@"VZManager: VM entropy devices: %lu\n", (unsigned long)vzConfig.entropyDevices.count];
+        stringWithFormat:
+            @"\n===== VZManager: VM %@ configuration details =====\n", vmId];
+    [configLog appendFormat:@"VZManager: VM CPU count: %lu\n",
+                            (unsigned long)vzConfig.CPUCount];
+    [configLog appendFormat:@"VZManager: VM memory size: %llu bytes\n",
+                            vzConfig.memorySize];
+    [configLog appendFormat:@"VZManager: VM platform type: %@\n",
+                            NSStringFromClass([vzConfig.platform class])];
+    [configLog appendFormat:@"VZManager: VM boot loader type: %@\n",
+                            NSStringFromClass([vzConfig.bootLoader class])];
+    [configLog appendFormat:@"VZManager: VM graphics devices: %lu\n",
+                            (unsigned long)vzConfig.graphicsDevices.count];
+    [configLog appendFormat:@"VZManager: VM network devices: %lu\n",
+                            (unsigned long)vzConfig.networkDevices.count];
+    [configLog appendFormat:@"VZManager: VM storage devices: %lu\n",
+                            (unsigned long)vzConfig.storageDevices.count];
+    [configLog appendFormat:@"VZManager: VM serial ports: %lu\n",
+                            (unsigned long)vzConfig.serialPorts.count];
+    [configLog appendFormat:@"VZManager: VM keyboards: %lu\n",
+                            (unsigned long)vzConfig.keyboards.count];
+    [configLog appendFormat:@"VZManager: VM pointing devices: %lu\n",
+                            (unsigned long)vzConfig.pointingDevices.count];
+    [configLog appendFormat:@"VZManager: VM entropy devices: %lu\n",
+                            (unsigned long)vzConfig.entropyDevices.count];
+
+    _displayEnabled[vmId] = @(enableDisplay);
+    [configLog appendFormat:@"VZManager: VM display enabled: %@\n",
+                            enableDisplay ? @"YES" : @"NO"];
 
     NSLog(@"%@", configLog);
 
     /* Append to log file */
     if ([[NSFileManager defaultManager] fileExistsAtPath:logFile]) {
-      NSString *existing = [NSString stringWithContentsOfFile:logFile
-                                                     encoding:NSUTF8StringEncoding
-                                                        error:nil];
-      configLog = [NSMutableString stringWithFormat:@"%@%@", existing, configLog];
+      NSString *existing =
+          [NSString stringWithContentsOfFile:logFile
+                                    encoding:NSUTF8StringEncoding
+                                       error:nil];
+      configLog =
+          [NSMutableString stringWithFormat:@"%@%@", existing, configLog];
     }
     [configLog writeToFile:logFile
                 atomically:YES
@@ -572,6 +612,35 @@
                 underlyingError.domain, (long)underlyingError.code,
                 underlyingError.localizedDescription];
       }
+    } else {
+      /* Success - show window if display is enabled */
+      BOOL displayEnabled = [_displayEnabled[vmId] boolValue];
+      if (displayEnabled) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          NSRect frame = NSMakeRect(100, 100, 1024, 768);
+          NSWindowStyleMask style =
+              NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+              NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
+          NSWindow *window =
+              [[NSWindow alloc] initWithContentRect:frame
+                                          styleMask:style
+                                            backing:NSBackingStoreBuffered
+                                              defer:NO];
+          [window setTitle:[NSString
+                               stringWithFormat:@"Virtual Machine: %@", vmId]];
+
+          VZVirtualMachineView *vmView =
+              [[VZVirtualMachineView alloc] initWithFrame:frame];
+          vmView.virtualMachine = vm;
+          vmView.capturesSystemKeys = YES;
+
+          [window setContentView:vmView];
+          [window makeKeyAndOrderFront:nil];
+
+          _windows[vmId] = window;
+          NSLog(@"VZManager: Display window created and shown for VM %@", vmId);
+        });
+      }
     }
     if ([[NSFileManager defaultManager] fileExistsAtPath:logFile]) {
       NSString *existing =
@@ -613,9 +682,37 @@
     return;
   }
 
+  if (vm.state == VZVirtualMachineStateStopped) {
+    NSLog(@"VZManager: VM %@ is already stopped", vmId);
+    dispatch_async(dispatch_get_main_queue(), ^{
+      NSWindow *window = _windows[vmId];
+      if (window) {
+        [window close];
+        [_windows removeObjectForKey:vmId];
+        NSLog(@"VZManager: Display window closed for VM %@", vmId);
+      }
+    });
+    if (self.delegate) {
+      [self.delegate vzManager:self didStopVM:vmId error:nil];
+    }
+    if (completion) {
+      completion(YES, nil);
+    }
+    return;
+  }
+
   /* Stop the VM */
   [vm stopWithCompletionHandler:^(NSError *_Nullable error) {
     NSLog(@"VZManager: VM %@ stop completed: %@", vmId, error ?: @"success");
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+      NSWindow *window = _windows[vmId];
+      if (window) {
+        [window close];
+        [_windows removeObjectForKey:vmId];
+        NSLog(@"VZManager: Display window closed for VM %@", vmId);
+      }
+    });
 
     if (self.delegate) {
       [self.delegate vzManager:self didStopVM:vmId error:error];
