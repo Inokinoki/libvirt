@@ -1,0 +1,29 @@
+<domain type='macosvf'>
+  <name>macosvf-invalid-disk-device</name>
+  <uuid>81b08e76-c6f7-475a-9428-4a6dc2dba301</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <currentMemory unit='KiB'>1048576</currentMemory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/boot/vmlinuz</kernel>
+    <initrd>/boot/initrd.img</initrd>
+    <cmdline>console=ttyS0 root=/dev/vda1</cmdline>
+  </os>
+  <cpu mode='host-model'/>
+  <clock offset='utc'/>
+  <devices>
+    <emulator>/usr/bin/macOSVF</emulator>
+    <disk type='file' device='floppy'>
+      <driver name='qemu' type='raw'/>
+      <source file='/var/lib/libvirt/images/floppy.img'/>
+      <target dev='fda' bus='virtio'/>
+    </disk>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

@@ -1,0 +1,23 @@
+<domain type='macosvf'>
+  <name>console-target-serial-vm</name>
+  <uuid>eff44411-2233-4455-6677-889900112233</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/disk.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <console type='pty'>
+      <target type='serial'/>
+    </console>
+  </devices>
+</domain>

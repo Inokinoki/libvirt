@@ -1,0 +1,32 @@
+<domain type='macosvf'>
+  <name>test-numa-cell</name>
+  <uuid>81d4e56c-1234-5678-9abc-def000000035</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <currentMemory unit='KiB'>1048576</currentMemory>
+  <vcpu placement='static'>2</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/boot/vmlinuz</kernel>
+    <initrd>/boot/initrd.img</initrd>
+    <cmdline>root=/dev/vda1 console=ttyAMA0</cmdline>
+    <boot dev='hd'/>
+  </os>
+  <cpu>
+    <numa>
+      <cell id='0' cpus='0' memory='524288' unit='KiB'/>
+      <cell id='1' cpus='1' memory='524288' unit='KiB'/>
+    </numa>
+  </cpu>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <emulator>/usr/bin/macosvf-emulator</emulator>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/test.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <controller type='pci' index='0' model='pci-root'/>
+  </devices>
+</domain>

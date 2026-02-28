@@ -1,0 +1,23 @@
+<domain type='macosvf'>
+  <name>invalid-memory-too-large</name>
+  <uuid>cccc5555-dddd-6666-eeee-ffff7777aaaa</uuid>
+  <memory unit='KiB'>2199023255552</memory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/disk.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

@@ -1,0 +1,33 @@
+<domain type='macosvf'>
+  <name>test-invalid-net-bandwidth</name>
+  <uuid>55555555-5555-5555-5555-555555555555</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/path/to/kernel</kernel>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <cpu mode='host-passthrough'/>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/path/to/disk.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <interface type='user'>
+      <mac address='52:54:00:55:55:55'/>
+      <model type='virtio'/>
+      <bandwidth>
+        <inbound average='1000'/>
+        <outbound average='1000'/>
+      </bandwidth>
+    </interface>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+  </devices>
+</domain>

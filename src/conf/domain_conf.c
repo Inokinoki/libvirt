@@ -128,6 +128,7 @@ VIR_ENUM_IMPL(virDomainVirt,
               "bhyve",
               "vz",
               "hvf",
+              "macosvf",
 );
 
 VIR_ENUM_IMPL(virDomainOS,

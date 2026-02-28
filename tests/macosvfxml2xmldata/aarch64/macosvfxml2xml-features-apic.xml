@@ -1,0 +1,24 @@
+<domain type='macosvf'>
+  <name>features-apic-vm</name>
+  <uuid>dddd4444-eeee-5555-ffff-6666aaaa7777</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/disk.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

@@ -1,0 +1,24 @@
+<domain type='macosvf'>
+  <name>test-invalid-interface-vhostuser</name>
+  <uuid>81d4e56c-1234-5678-9abc-def000000087</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <currentMemory unit='KiB'>1048576</currentMemory>
+  <vcpu placement='static'>2</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/boot/vmlinuz</kernel>
+    <initrd>/boot/initrd.img</initrd>
+    <cmdline>root=/dev/vda1 console=ttyAMA0</cmdline>
+  </os>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/test.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <interface type='vhostuser'>
+      <source type='unix' path='/var/run/vhost-user.sock' mode='server'/>
+      <mac address='52:54:00:71:b1:c3'/>
+      <model type='virtio'/>
+    </interface>
+  </devices>
+</domain>

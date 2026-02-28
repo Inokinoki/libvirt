@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Virtualization Framework Entitlement -->
+    <key>com.apple.security.virtualization</key>
+    <true/>
+
+    <!-- Allow virtualization to access hardware -->
+    <key>com.apple.security.virtualization.allow-logging</key>
+    <true/>
+
+    <!-- Network access for virtio networking -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <key>com.apple.security.network.server</key>
+    <true/>
+
+    <!-- Full disk access for privileged helper -->
+    <key>com.apple.security.temporary-exception.files</key>
+    <array>
+        <string>/</string>
+    </array>
+
+    <!-- File system access -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+    <key>com.apple.security.files.bookmarks.app-scope</key>
+    <true/>
+    <key>com.apple.security.files.bookmarks.document-scope</key>
+    <true/>
+    <key>com.apple.security.files.downloads.read-write</key>
+    <true/>
+
+    <!-- Allow XPC communication -->
+    <key>com.apple.security.xpc</key>
+    <array>
+        <string>org.libvirt.virtmacosvf-helper</string>
+    </array>
+</dict>
+</plist>

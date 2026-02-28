@@ -1,0 +1,30 @@
+<domain type='macosvf'>
+  <name>test-invalid-serial-telnet</name>
+  <uuid>66666666-6666-6666-6666-666666666666</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/path/to/kernel</kernel>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <cpu mode='host-passthrough'/>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/path/to/disk.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <interface type='user'>
+      <model type='virtio'/>
+    </interface>
+    <serial type='tcp'>
+      <source mode='bind' host='127.0.0.1' service='9999' protocol='telnet'/>
+      <protocol type='telnet'/>
+      <target port='0'/>
+    </serial>
+  </devices>
+</domain>

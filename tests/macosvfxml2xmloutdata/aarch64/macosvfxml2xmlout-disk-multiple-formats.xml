@@ -1,0 +1,67 @@
+<domain type='macosvf'>
+  <name>test-disk-formats</name>
+  <uuid>11111111-1111-1111-1111-111111111111</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <currentMemory unit='KiB'>1048576</currentMemory>
+  <vcpu placement='static'>2</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/path/to/kernel</kernel>
+    <cmdline>console=ttyAMA0</cmdline>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <cpu mode='host-passthrough'/>
+  <clock offset='utc'>
+    <timer name='platform' tickpolicy='delay'/>
+    <timer name='rtc' tickpolicy='catchup'/>
+    <timer name='armvtimer'/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='raw'/>
+      <source file='/path/to/disk1.raw'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/path/to/disk2.qcow2'/>
+      <target dev='vdb' bus='virtio'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <source file='/path/to/disk3.img'/>
+      <target dev='vdc' bus='virtio'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='/path/to/install1.iso'/>
+      <target dev='sda' bus='scsi'/>
+      <readonly/>
+      <address type='drive' controller='0' bus='0' target='0' unit='0'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <source file='/path/to/install2.iso'/>
+      <target dev='sdb' bus='scsi'/>
+      <readonly/>
+      <address type='drive' controller='0' bus='0' target='0' unit='1'/>
+    </disk>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='isa' index='0'/>
+    <controller type='scsi' index='0'/>
+    <interface type='user'>
+      <mac address='52:54:00:11:11:11'/>
+      <model type='virtio'/>
+    </interface>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

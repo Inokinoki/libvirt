@@ -1,0 +1,35 @@
+<domain type='macosvf'>
+  <name>boot-multiple-vm</name>
+  <uuid>2222bbbb-cccc-dddd-eeee-ffff3333aaaa</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+    <boot dev='hd'/>
+    <boot dev='cdrom'/>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/disk.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <source file='/var/lib/libvirt/images/install.iso'/>
+      <target dev='vdb' bus='virtio'/>
+      <readonly/>
+    </disk>
+    <interface type='network'>
+      <mac address='52:54:00:12:34:56'/>
+      <source network='default'/>
+      <model type='virtio'/>
+    </interface>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

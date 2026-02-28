@@ -1,0 +1,70 @@
+<domainsnapshot>
+  <name>running-snapshot</name>
+  <description>Snapshot of running VM with multiple devices</description>
+  <state>running</state>
+  <creationTime>1728409300</creationTime>
+  <domain type='macosvf'>
+    <name>test-running</name>
+    <uuid>22222222-3333-4444-5555-666666666666</uuid>
+    <memory unit='KiB'>1048576</memory>
+    <currentMemory unit='KiB'>1048576</currentMemory>
+    <vcpu placement='static'>2</vcpu>
+    <os>
+      <type arch='aarch64' machine='macosvf'>hvm</type>
+      <kernel>/path/to/kernel</kernel>
+      <cmdline>console=ttyAMA0 root=/dev/vda2</cmdline>
+    </os>
+    <features>
+      <acpi/>
+      <apic/>
+    </features>
+    <cpu mode='host-model' check='none'>
+      <topology sockets='1' cores='2' threads='1'/>
+    </cpu>
+    <clock offset='utc'>
+      <timer name='platform' tickpolicy='delay'/>
+      <timer name='rtc' tickpolicy='catchup'/>
+      <timer name='armvtimer'/>
+    </clock>
+    <on_poweroff>destroy</on_poweroff>
+    <on_reboot>restart</on_reboot>
+    <on_crash>preserve</on_crash>
+    <devices>
+      <emulator>/usr/bin/qemu-system-aarch64</emulator>
+      <disk type='file' device='disk'>
+        <driver name='qemu' type='qcow2'/>
+        <source file='/path/to/root.qcow2'/>
+        <target dev='vda' bus='virtio'/>
+        <boot order='1'/>
+      </disk>
+      <disk type='file' device='disk'>
+        <driver name='qemu' type='raw'/>
+        <source file='/path/to/data.img'/>
+        <target dev='vdb' bus='virtio'/>
+      </disk>
+      <controller type='pci' index='0' model='pci-root'/>
+      <controller type='isa' index='0'/>
+      <interface type='bridge'>
+        <mac address='52:54:00:22:22:22'/>
+        <source bridge='br0'/>
+        <model type='virtio'/>
+        <driver name='vhost'/>
+      </interface>
+      <interface type='user'>
+        <mac address='52:54:00:22:22:23'/>
+        <model type='virtio'/>
+      </interface>
+      <serial type='pty'>
+        <target port='0'/>
+      </serial>
+      <serial type='file'>
+        <source path='/var/log/libvirt/domain-serial.log'/>
+        <target port='1'/>
+      </serial>
+      <console type='pty'>
+        <target type='serial' port='0'/>
+      </console>
+    </devices>
+  </domain>
+  <active>1</active>
+</domainsnapshot>

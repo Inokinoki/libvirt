@@ -1,0 +1,28 @@
+<domain type='macosvf'>
+  <name>memory-hugepages-2m</name>
+  <uuid>cccc6666-dddd-7777-eeee-ffff8888aaaa</uuid>
+  <memory unit='KiB'>2097152</memory>
+  <memoryBacking>
+    <hugepages>
+      <page size='2048' unit='KiB'/>
+    </hugepages>
+  </memoryBacking>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/disk.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

@@ -1,0 +1,26 @@
+<domain type='macosvf'>
+  <name>invalid-seclabel</name>
+  <uuid>dddd4444-eeee-ffff-0000-111155556666</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <seclabel type='static' model='dac' relabel='yes'>
+    <label>root:root:rw-r--r--</label>
+  </seclabel>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/disk.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

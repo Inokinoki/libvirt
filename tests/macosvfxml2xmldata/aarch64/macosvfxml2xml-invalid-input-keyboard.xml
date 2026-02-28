@@ -1,0 +1,29 @@
+<domain type='macosvf'>
+  <name>invalid-input-keyboard</name>
+  <uuid>793a0c08-2dfb-47d1-afe9-4140bdb3b683</uuid>
+  <memory unit='KiB'>524288</memory>
+  <currentMemory unit='KiB'>524288</currentMemory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='isa' index='0'/>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+    <input type='keyboard' bus='usb'/>
+  </devices>
+</domain>

@@ -1,0 +1,23 @@
+<domain type='macosvf'>
+  <name>invalid-vcpu-too-many</name>
+  <uuid>bbbb4444-cccc-5555-dddd-eeee6666ffff</uuid>
+  <memory unit='KiB'>1048576</memory>
+  <vcpu placement='static'>256</vcpu>
+  <os>
+    <type arch='aarch64' machine='macosvf'>hvm</type>
+    <kernel>/var/lib/libvirt/boot/vmlinuz</kernel>
+  </os>
+  <features>
+    <acpi/>
+  </features>
+  <clock offset='utc'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <source file='/var/lib/libvirt/images/disk.img'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+  </devices>
+</domain>

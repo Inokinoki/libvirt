@@ -1,0 +1,96 @@
+<domainsnapshot>
+  <name>paused-snapshot</name>
+  <description>Snapshot of paused VM with advanced configuration</description>
+  <state>paused</state>
+  <creationTime>1728409400</creationTime>
+  <domain type='macosvf'>
+    <name>test-paused</name>
+    <uuid>33333333-4444-5555-6666-777777777777</uuid>
+    <metadata>
+      <libosinfo:libosinfo xmlns:libosinfo="http://libosinfo.org/xmlns/libvirt/domain/1.0">
+        <libosinfo:os id="http://libosinfo.org/debian12"/>
+      </libosinfo:libosinfo>
+    </metadata>
+    <memory unit='KiB'>4194304</memory>
+    <currentMemory unit='KiB'>2097152</currentMemory>
+    <vcpu placement='static'>4</vcpu>
+    <vcpus>
+      <vcpu id='0' enabled='yes' hotpluggable='no' order='1'/>
+      <vcpu id='1' enabled='yes' hotpluggable='no' order='2'/>
+      <vcpu id='2' enabled='yes' hotpluggable='no' order='3'/>
+      <vcpu id='3' enabled='yes' hotpluggable='no' order='4'/>
+    </vcpus>
+    <os>
+      <type arch='aarch64' machine='macosvf'>hvm</type>
+      <kernel>/path/to/vmlinuz</kernel>
+      <initrd>/path/to/initrd.img</initrd>
+      <cmdline>console=ttyAMA0 root=/dev/vda1 rw quiet</cmdline>
+    </os>
+    <features>
+      <acpi/>
+      <apic/>
+    </features>
+    <cpu mode='host-model' check='none'>
+      <topology sockets='1' cores='4' threads='1'/>
+    </cpu>
+    <clock offset='utc'>
+      <timer name='platform' present='yes' tickpolicy='delay'/>
+      <timer name='rtc' present='yes' tickpolicy='catchup' track='guest'/>
+      <timer name='armvtimer' present='yes'/>
+    </clock>
+    <on_poweroff>destroy</on_poweroff>
+    <on_reboot>restart</on_reboot>
+    <on_crash>preserve</on_crash>
+    <on_lockfailure>ignore</on_lockfailure>
+    <devices>
+      <emulator>/usr/bin/qemu-system-aarch64</emulator>
+      <disk type='file' device='disk'>
+        <driver name='qemu' type='qcow2' discard='unmap'/>
+        <source file='/path/to/root.qcow2'/>
+        <target dev='vda' bus='virtio'/>
+        <boot order='1'/>
+      </disk>
+      <disk type='file' device='disk'>
+        <driver name='qemu' type='raw'/>
+        <source file='/path/to/data.img'/>
+        <target dev='vdb' bus='virtio'/>
+      </disk>
+      <disk type='file' device='disk'>
+        <driver name='qemu' type='qcow2'/>
+        <source file='/path/to/backup.qcow2'/>
+        <target dev='vdc' bus='virtio'/>
+      </disk>
+      <controller type='pci' index='0' model='pci-root'/>
+      <controller type='isa' index='0'/>
+      <interface type='bridge'>
+        <mac address='52:54:00:33:33:33'/>
+        <source bridge='br0'/>
+        <model type='virtio'/>
+        <driver name='vhost'/>
+      </interface>
+      <interface type='user'>
+        <mac address='52:54:00:33:33:34'/>
+        <model type='virtio'/>
+      </interface>
+      <interface type='network'>
+        <mac address='52:54:00:33:33:35'/>
+        <source network='default'/>
+        <model type='virtio'/>
+      </interface>
+      <serial type='pty'>
+        <target port='0'/>
+      </serial>
+      <serial type='file'>
+        <source path='/var/log/libvirt/domain-serial.log'/>
+        <target port='1'/>
+      </serial>
+      <serial type='null'>
+        <target port='2'/>
+      </serial>
+      <console type='pty'>
+        <target type='serial' port='0'/>
+      </console>
+    </devices>
+  </domain>
+  <active>1</active>
+</domainsnapshot>
