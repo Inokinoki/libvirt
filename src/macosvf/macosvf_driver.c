@@ -1683,6 +1683,7 @@ static virDomainPtr macosvfDomainCreateXML(virConnectPtr conn, const char *xml,
   virDomainObj *vm = NULL;
   macosvfDomainObjPrivate *priv;
   macosvfVMObject *vmobj = NULL;
+  bool vm_added = false;
   unsigned int parse_flags = VIR_DOMAIN_DEF_PARSE_INACTIVE;
 
   virCheckFlags(VIR_DOMAIN_START_VALIDATE | VIR_DOMAIN_START_PAUSED |
@@ -1702,6 +1703,7 @@ static virDomainPtr macosvfDomainCreateXML(virConnectPtr conn, const char *xml,
   if (!(vm = virDomainObjListAdd(privconn->domains, &def, privconn->xmlopt, 0,
                                  NULL)))
     goto cleanup;
+  vm_added = true;
 
   priv = vm->privateData;
 
@@ -1742,6 +1744,9 @@ static virDomainPtr macosvfDomainCreateXML(virConnectPtr conn, const char *xml,
   ret = virGetDomain(conn, vm->def->name, vm->def->uuid, vm->def->id);
 
 cleanup:
+  if (!ret && vm_added)
+    virDomainObjListRemove(privconn->domains, vm);
+
   virDomainObjEndAPI(&vm);
   return ret;
 }
@@ -2105,7 +2110,7 @@ macosvfStateInitialize(bool privileged, const char *root,
                                          NULL)))
             continue;
 
-          VIR_WARN("Loaded domain '%s' from %s", vm->def->name, xmlFile);
+          VIR_INFO("Loaded domain '%s' from %s", vm->def->name, xmlFile);
           virDomainObjEndAPI(&vm);
         }
       }
